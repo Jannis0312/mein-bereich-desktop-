@@ -1,12 +1,12 @@
 {
   "name": "mein-bereich",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "Persönliches Dashboard als Windows-Desktop-App",
   "main": "desktop.cjs",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win nsis"
+    "dist": "electron-builder --win nsis --publish never"
   },
   "devDependencies": {
     "electron": "^44.7.0",
