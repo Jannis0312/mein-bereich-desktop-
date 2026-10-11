@@ -32,6 +32,8 @@ Der Ausgaben-Tracker speichert Beträge in Euro mit Datum, Notiz und festen Kate
 
 Im Spiele-Backlog kannst du Spiele mit Plattform, Status und optionaler Notiz festhalten. Filtere nach „Als Nächstes“, „Spiele ich“ oder „Durchgespielt“ und lass dir zufällig ein Spiel aus deiner „Als Nächstes“-Liste auswählen. Deine Spiele werden lokal gespeichert, mit deinem Cloud-Konto synchronisiert und in Sicherungen einbezogen.
 
+Die Wetterkarte zeigt das aktuelle Wetter und eine Fünf-Tage-Vorhersage für eine eingegebene Stadt. Der Ortsname wird zur Suche an Open-Meteo übermittelt; die App fragt keinen GPS-Standort ab. Für die Wetteranzeige ist eine Internetverbindung erforderlich.
+
 Nur der öffentliche Supabase-Client-Key gehört in `cloud-config.js`; **niemals** dort einen `service_role`-Key eintragen oder veröffentlichen. Der SQL-Aufbau aktiviert Row Level Security und beschränkt Datenbankzugriffe auf das jeweilige angemeldete Konto. Das Cloud-Konto ist vom GitHub-Konto für App-Releases getrennt.
 
 ## Windows-Installationsdatei erstellen

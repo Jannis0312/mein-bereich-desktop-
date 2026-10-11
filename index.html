@@ -220,6 +220,22 @@
     .game-result strong { display: block; margin-top: 3px; font-size: 15px; }
     :root[data-theme="dark"] .game-filter, :root[data-theme="dark"] .game-status-select { border-color: var(--line); background: #1d211d; color: var(--ink); }
     :root[data-theme="dark"] .game-result { border-color: #354434; }
+    .weather-search { display: flex; gap: 8px; margin-bottom: 12px; }
+    .weather-search input { width: 100%; min-width: 0; min-height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 9px; background: var(--card); color: var(--ink); font-size: 11px; }
+    .weather-search .primary-button { min-height: 38px; padding-inline: 11px; font-size: 11px; }
+    .weather-privacy, .weather-message { color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .weather-message { margin: 10px 0 0; }
+    .weather-current { display: flex; align-items: center; gap: 14px; padding: 13px; border-radius: 11px; background: var(--green-pale); }
+    .weather-temperature { font-size: 32px; font-weight: 650; letter-spacing: -.06em; line-height: 1; }
+    .weather-condition { margin-top: 5px; color: var(--muted); font-size: 11px; }
+    .weather-details { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 10px 2px 13px; color: var(--muted); font-size: 10px; }
+    .weather-forecast { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+    .weather-day { padding: 9px 5px; border: 1px solid var(--line); border-radius: 9px; text-align: center; }
+    .weather-day-label { color: var(--muted); font-size: 9px; }
+    .weather-day-icon { margin: 5px 0; font-size: 15px; }
+    .weather-day-temperatures { font-size: 9px; line-height: 1.5; }
+    :root[data-theme="dark"] .weather-search input { border-color: var(--line); background: #1d211d; color: var(--ink); }
+    :root[data-theme="dark"] .weather-current { border: 1px solid #354434; }
     .empty { padding: 20px 8px 18px; color: var(--muted); font-size: 12px; line-height: 1.6; text-align: center; }
     .empty strong { display: block; margin-bottom: 4px; color: var(--ink); font-weight: 650; }
     .privacy { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; color: var(--muted); font-size: 11px; line-height: 1.55; }
@@ -454,6 +470,22 @@
             <div id="games-list"></div>
           </div>
         </section>
+        <section class="panel" data-widget="weather" aria-labelledby="weather-heading">
+          <div class="panel-head">
+            <h2 class="panel-title" id="weather-heading"><span class="title-icon" aria-hidden="true">☀</span>Wetter</h2>
+          </div>
+          <div class="panel-content">
+            <form class="weather-search" id="weather-search-form">
+              <input id="weather-city" type="search" maxlength="100" autocomplete="off" aria-label="Stadt für den Wetterbericht" placeholder="Stadt eingeben, z. B. Berlin" required>
+              <button class="primary-button" type="submit">Anzeigen</button>
+            </form>
+            <div class="weather-privacy">Der eingegebene Ortsname wird für die Wetterabfrage an Open-Meteo gesendet. Es wird kein GPS-Standort verwendet.</div>
+            <p class="weather-message" id="weather-message" role="status" aria-live="polite">Gib eine Stadt ein, um das aktuelle Wetter und die Vorhersage zu sehen.</p>
+            <div id="weather-current" hidden></div>
+            <div class="weather-details" id="weather-details" hidden></div>
+            <div class="weather-forecast" id="weather-forecast" hidden></div>
+          </div>
+        </section>
         <aside class="privacy">
           <span class="privacy-icon" aria-hidden="true">●</span>
           <span>Deine Einträge werden automatisch auf diesem Gerät gespeichert. Verbinde ein Cloud-Konto, um sie zusätzlich geräteübergreifend zu synchronisieren; „Sicherung“ erstellt weiterhin eine herunterladbare Kopie.</span>
@@ -501,6 +533,7 @@
         <label class="widget-option"><input type="checkbox" name="watchlist"><span class="widget-option-text"><strong>Film- &amp; Serien-Watchlist</strong><small>Merkliste und zufällige Auswahl per Roulette</small></span></label>
         <label class="widget-option"><input type="checkbox" name="expenses"><span class="widget-option-text"><strong>Ausgaben</strong><small>Monatssummen und Ausgaben nach Kategorie</small></span></label>
         <label class="widget-option"><input type="checkbox" name="games"><span class="widget-option-text"><strong>Spiele-Backlog</strong><small>Spiele, Plattformen und zufällige Auswahl</small></span></label>
+        <label class="widget-option"><input type="checkbox" name="weather"><span class="widget-option-text"><strong>Wetter</strong><small>Aktuelles Wetter und 5-Tage-Vorhersage</small></span></label>
       </div>
       <div class="dialog-actions">
         <button class="quiet-button widget-reset" type="button" id="widgets-reset">Alle einblenden</button>
@@ -659,9 +692,10 @@
       const timerStorageKey = "mein-bereich-timer-v1";
       const themeStorageKey = "mein-bereich-theme-v1";
       const widgetsStorageKey = "mein-bereich-widgets-v1";
+      const weatherLocationStorageKey = "mein-bereich-weather-location-v1";
       const cloudSessionStorageKey = "mein-bereich-cloud-session-v1";
       const cloudConfig = window.MEIN_BEREICH_CLOUD || {};
-      const widgetDefaults = { overview: true, timer: true, search: true, links: true, tasks: true, notes: true, habits: true, calendar: true, watchlist: true, expenses: true, games: true };
+      const widgetDefaults = { overview: true, timer: true, search: true, links: true, tasks: true, notes: true, habits: true, calendar: true, watchlist: true, expenses: true, games: true, weather: true };
       const defaults = {
         profile: { name: "Dein Name", intro: "Ein Ort für deine Ideen, Links und den Alltag. Füge hinzu, was dir wichtig ist." },
         links: [],
@@ -742,6 +776,7 @@
       let cloudSyncInProgress = false;
       let cloudDirty = false;
       let cloudLastError = "";
+      let weatherRequestController = null;
 
       function loadWidgets() {
         try {
@@ -1771,6 +1806,155 @@
         gameEditor.showModal();
         document.getElementById("game-title").focus();
       }
+      function weatherDescription(code) {
+        const conditions = {
+          0: ["Klar", "☀"],
+          1: ["Überwiegend klar", "🌤"],
+          2: ["Teilweise bewölkt", "⛅"],
+          3: ["Bedeckt", "☁"],
+          45: ["Nebel", "🌫"],
+          48: ["Nebel mit Reif", "🌫"],
+          51: ["Leichter Nieselregen", "🌦"],
+          53: ["Nieselregen", "🌦"],
+          55: ["Starker Nieselregen", "🌧"],
+          56: ["Gefrierender Nieselregen", "🌧"],
+          57: ["Starker gefrierender Nieselregen", "🌧"],
+          61: ["Leichter Regen", "🌦"],
+          63: ["Regen", "🌧"],
+          65: ["Starker Regen", "🌧"],
+          66: ["Gefrierender Regen", "🌧"],
+          67: ["Starker gefrierender Regen", "🌧"],
+          71: ["Leichter Schneefall", "🌨"],
+          73: ["Schneefall", "🌨"],
+          75: ["Starker Schneefall", "❄"],
+          77: ["Schneegriesel", "❄"],
+          80: ["Leichte Regenschauer", "🌦"],
+          81: ["Regenschauer", "🌧"],
+          82: ["Starke Regenschauer", "🌧"],
+          85: ["Leichte Schneeschauer", "🌨"],
+          86: ["Starke Schneeschauer", "❄"],
+          95: ["Gewitter", "⛈"],
+          96: ["Gewitter mit Hagel", "⛈"],
+          99: ["Starkes Gewitter mit Hagel", "⛈"]
+        };
+        return conditions[code] || ["Wetterdaten nicht verfügbar", "•"];
+      }
+      function setWeatherMessage(message) {
+        document.getElementById("weather-message").textContent = message;
+      }
+      async function loadWeather(city) {
+        const currentContainer = document.getElementById("weather-current");
+        const detailsContainer = document.getElementById("weather-details");
+        const forecastContainer = document.getElementById("weather-forecast");
+        const searchButton = document.querySelector("#weather-search-form button[type='submit']");
+        const query = city.trim();
+        if (!query) return;
+        if (weatherRequestController) weatherRequestController.abort();
+        const controller = new AbortController();
+        weatherRequestController = controller;
+        searchButton.disabled = true;
+        currentContainer.hidden = true;
+        detailsContainer.hidden = true;
+        forecastContainer.hidden = true;
+        currentContainer.replaceChildren();
+        detailsContainer.replaceChildren();
+        forecastContainer.replaceChildren();
+        setWeatherMessage(`Wetter für ${query} wird geladen …`);
+        try {
+          const geocodingUrl = new URL("https://geocoding-api.open-meteo.com/v1/search");
+          geocodingUrl.search = new URLSearchParams({ name: query, count: "5", language: "de", format: "json" });
+          const geocodingResponse = await fetch(geocodingUrl, { signal: controller.signal });
+          if (!geocodingResponse.ok) throw new Error(`Ortssuche fehlgeschlagen (HTTP ${geocodingResponse.status}).`);
+          const geocodingData = await geocodingResponse.json();
+          const location = geocodingData.results?.find(item => Number.isFinite(item.latitude) && Number.isFinite(item.longitude));
+          if (!location) {
+            setWeatherMessage(`Für „${query}“ wurde kein Ort gefunden. Prüfe die Schreibweise oder gib eine größere Stadt ein.`);
+            return;
+          }
+          const forecastUrl = new URL("https://api.open-meteo.com/v1/forecast");
+          forecastUrl.search = new URLSearchParams({
+            latitude: String(location.latitude),
+            longitude: String(location.longitude),
+            current: "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m",
+            daily: "weather_code,temperature_2m_max,temperature_2m_min",
+            timezone: location.timezone || "auto",
+            forecast_days: "5"
+          });
+          const forecastResponse = await fetch(forecastUrl, { signal: controller.signal });
+          if (!forecastResponse.ok) throw new Error(`Wetterabfrage fehlgeschlagen (HTTP ${forecastResponse.status}).`);
+          const forecast = await forecastResponse.json();
+          const current = forecast.current;
+          const daily = forecast.daily;
+          if (!current || !daily || !Array.isArray(daily.time) || !Array.isArray(daily.weather_code) ||
+              !Array.isArray(daily.temperature_2m_max) || !Array.isArray(daily.temperature_2m_min) ||
+              !["temperature_2m", "apparent_temperature", "relative_humidity_2m", "wind_speed_10m", "precipitation", "weather_code"].every(key => Number.isFinite(current[key])) ||
+              daily.time.length < 5 || daily.time.length !== daily.weather_code.length ||
+              daily.time.length !== daily.temperature_2m_max.length || daily.time.length !== daily.temperature_2m_min.length ||
+              !daily.time.every((date, index) => validDate(date) && Number.isFinite(daily.weather_code[index]) &&
+                Number.isFinite(daily.temperature_2m_max[index]) && Number.isFinite(daily.temperature_2m_min[index]))) {
+            throw new Error("Die Wetterdaten haben ein unerwartetes Format.");
+          }
+          const place = [location.name, location.admin1, location.country].filter(Boolean).filter((part, index, all) => all.indexOf(part) === index);
+          const [condition, icon] = weatherDescription(current.weather_code);
+          const currentCard = el("div", "weather-current");
+          const currentIcon = el("span", "", icon);
+          currentIcon.setAttribute("aria-hidden", "true");
+          currentCard.append(currentIcon, el("span", "weather-temperature", `${Math.round(current.temperature_2m)}°`));
+          const currentText = el("span", "");
+          currentText.append(el("strong", "", place.join(", ")), el("span", "weather-condition", condition));
+          currentCard.append(currentText);
+          currentContainer.append(currentCard);
+          const details = [
+            `Gefühlt ${Math.round(current.apparent_temperature)}°`,
+            `Luftfeuchte ${Math.round(current.relative_humidity_2m)} %`,
+            `Wind ${Math.round(current.wind_speed_10m)} km/h`,
+            `Niederschlag ${Number(current.precipitation).toLocaleString("de-DE")} mm`
+          ];
+          details.forEach(detail => detailsContainer.append(el("span", "", detail)));
+          daily.time.slice(0, 5).forEach((date, index) => {
+            const [dayCondition, dayIcon] = weatherDescription(daily.weather_code[index]);
+            const day = el("div", "weather-day");
+            const dateValue = new Date(`${date}T12:00:00`);
+            const dayLabel = index === 0 ? "Heute" : new Intl.DateTimeFormat("de-DE", { weekday: "short" }).format(dateValue);
+            day.append(
+              el("div", "weather-day-label", dayLabel),
+              el("div", "weather-day-temperatures", `${Math.round(daily.temperature_2m_max[index])}° / ${Math.round(daily.temperature_2m_min[index])}°`)
+            );
+            const dayIconElement = el("div", "weather-day-icon", dayIcon);
+            dayIconElement.setAttribute("aria-hidden", "true");
+            day.insertBefore(dayIconElement, day.children[1]);
+            day.title = `${dayCondition}: ${Math.round(daily.temperature_2m_max[index])}° / ${Math.round(daily.temperature_2m_min[index])}°`;
+            forecastContainer.append(day);
+          });
+          currentContainer.hidden = false;
+          detailsContainer.hidden = false;
+          forecastContainer.hidden = false;
+          setWeatherMessage(`Aktualisiert · ${new Intl.DateTimeFormat("de-DE", { hour: "2-digit", minute: "2-digit" }).format(new Date())}`);
+        } catch (error) {
+          if (error.name === "AbortError") return;
+          console.error("Wetterabfrage fehlgeschlagen:", error);
+          setWeatherMessage("Das Wetter konnte nicht geladen werden. Prüfe deine Internetverbindung und versuche es erneut.");
+        } finally {
+          if (weatherRequestController === controller) {
+            weatherRequestController = null;
+            searchButton.disabled = false;
+          }
+        }
+      }
+      function initializeWeather() {
+        let savedCity;
+        try {
+          savedCity = localStorage.getItem(weatherLocationStorageKey) || "";
+        } catch (error) {
+          console.error("Gespeicherter Wetterort konnte nicht gelesen werden:", error);
+          setWeatherMessage("Der gespeicherte Wetterort konnte nicht geladen werden. Gib ihn bitte erneut ein.");
+          return;
+        }
+        if (savedCity) {
+          document.getElementById("weather-city").value = savedCity;
+          loadWeather(savedCity);
+        }
+      }
       function openEditor(kind, id) {
         editing = { kind, id: id || null };
         const existing = id && kind !== "profile" ? collectionFor(kind).find(item => item.id === id) : null;
@@ -2073,6 +2257,18 @@
         result.hidden = false;
       });
       document.getElementById("game-result").hidden = true;
+      document.getElementById("weather-search-form").addEventListener("submit", event => {
+        event.preventDefault();
+        const city = document.getElementById("weather-city").value.trim();
+        if (!city) return notify("Bitte gib eine Stadt für den Wetterbericht ein.");
+        try {
+          localStorage.setItem(weatherLocationStorageKey, city);
+        } catch (error) {
+          console.error("Wetterort konnte nicht gespeichert werden:", error);
+          notify("Der Wetterort kann diesmal nicht gespeichert werden. Der Wetterbericht wird trotzdem geladen.");
+        }
+        loadWeather(city);
+      });
       document.addEventListener("change", event => {
         const input = event.target;
         if (input.matches('[data-action="game-status"]')) {
@@ -2344,6 +2540,7 @@
       setupCloudSync();
       loadTheme();
       render();
+      initializeWeather();
       updateTimer();
       if (timer.justCompleted) {
         saveTimer();
