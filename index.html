@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f6f5f0">
-  <meta name="description" content="Dein persönlicher, anpassbarer Bereich für Links, Notizen und Aufgaben.">
+  <meta name="description" content="Dein persönlicher, anpassbarer Bereich für Aufgaben, Notizen, Termine und deine Film- und Serien-Watchlist.">
   <title>Mein Bereich</title>
   <style>
     :root {
@@ -184,6 +184,18 @@
     .note-body { margin: 9px 0 0; color: #6f726a; font-size: 12px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
     .note-controls { display: flex; gap: 3px; margin: -6px -7px 0 0; }
     .note-controls .icon-button { background: transparent; border-color: transparent; }
+    .watch-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+    .watch-filter { min-height: 34px; padding: 0 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--muted); font-size: 11px; }
+    .watch-entry { display: flex; align-items: center; gap: 10px; }
+    .watch-entry .entry-text { flex: 1; }
+    .watch-type, .watch-status { display: inline-flex; align-items: center; width: fit-content; padding: 3px 7px; border-radius: 99px; background: var(--badge-surface); color: var(--muted); font-size: 10px; }
+    .watch-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+    .watch-status-select { max-width: 125px; min-height: 32px; padding: 0 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--muted); font-size: 10px; }
+    .watch-result { margin-bottom: 14px; padding: 13px 14px; border: 1px solid #dfe5d9; border-radius: 11px; background: var(--green-pale); color: var(--ink); font-size: 12px; line-height: 1.5; }
+    .watch-result[hidden] { display: none; }
+    .watch-result strong { display: block; margin-top: 3px; font-size: 15px; }
+    :root[data-theme="dark"] .watch-result { border-color: #354434; }
+    :root[data-theme="dark"] .watch-filter, :root[data-theme="dark"] .watch-status-select { border-color: var(--line); background: #1d211d; color: var(--ink); }
     .empty { padding: 20px 8px 18px; color: var(--muted); font-size: 12px; line-height: 1.6; text-align: center; }
     .empty strong { display: block; margin-bottom: 4px; color: var(--ink); font-weight: 650; }
     .privacy { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; color: var(--muted); font-size: 11px; line-height: 1.55; }
@@ -291,7 +303,7 @@
     </section>
     <p class="shortcut-hint">Tastenkürzel: <kbd>/</kbd> Suche · <kbd>Strg</kbd> + <kbd>K</kbd> neue Aufgabe</p>
     <div class="search-wrap" data-widget="search">
-      <input class="search-input" id="search-input" type="search" aria-label="Einträge durchsuchen" placeholder="Links, Aufgaben, Notizen und Termine durchsuchen …">
+      <input class="search-input" id="search-input" type="search" aria-label="Einträge durchsuchen" placeholder="Links, Aufgaben, Notizen, Termine und Watchlist durchsuchen …">
     </div>
 
     <section class="layout" aria-label="Deine persönlichen Inhalte">
@@ -355,6 +367,25 @@
           </div>
           <div class="panel-content" id="habits-list"></div>
         </section>
+        <section class="panel" data-widget="watchlist" aria-labelledby="watchlist-heading">
+          <div class="panel-head">
+            <h2 class="panel-title" id="watchlist-heading"><span class="title-icon" aria-hidden="true">▶</span>Film- &amp; Serien-Watchlist</h2>
+            <button class="add-button" type="button" id="watch-add">＋ Titel</button>
+          </div>
+          <div class="panel-content">
+            <div class="watch-toolbar">
+              <select class="watch-filter" id="watch-filter" aria-label="Watchlist filtern">
+                <option value="all">Alle Titel</option>
+                <option value="planned">Auf der Liste</option>
+                <option value="watching">Schaue ich</option>
+                <option value="watched">Gesehen</option>
+              </select>
+              <button class="primary-button" type="button" id="watch-roulette">🎲 Filmroulette</button>
+            </div>
+            <div class="watch-result" id="watch-result" role="status" aria-live="polite" hidden></div>
+            <div id="watchlist-list"></div>
+          </div>
+        </section>
         <aside class="privacy">
           <span class="privacy-icon" aria-hidden="true">●</span>
           <span>Deine Einträge werden automatisch auf diesem Gerät gespeichert. Verbinde ein Cloud-Konto, um sie zusätzlich geräteübergreifend zu synchronisieren; „Sicherung“ erstellt weiterhin eine herunterladbare Kopie.</span>
@@ -399,6 +430,7 @@
         <label class="widget-option"><input type="checkbox" name="notes"><span class="widget-option-text"><strong>Meine Notizen</strong><small>Deine persönlichen Gedanken</small></span></label>
         <label class="widget-option"><input type="checkbox" name="habits"><span class="widget-option-text"><strong>Meine Routinen</strong><small>Tägliche Gewohnheiten und Serien</small></span></label>
         <label class="widget-option"><input type="checkbox" name="calendar"><span class="widget-option-text"><strong>Mein Kalender</strong><small>Termine planen und kommende Tage ansehen</small></span></label>
+        <label class="widget-option"><input type="checkbox" name="watchlist"><span class="widget-option-text"><strong>Film- &amp; Serien-Watchlist</strong><small>Merkliste und zufällige Auswahl per Roulette</small></span></label>
       </div>
       <div class="dialog-actions">
         <button class="quiet-button widget-reset" type="button" id="widgets-reset">Alle einblenden</button>
@@ -445,6 +477,41 @@
       <p class="intro-copy" id="cloud-config-help" hidden>Cloud ist noch nicht eingerichtet. Trage deine Supabase-Projekt-URL und deinen öffentlichen Publishable/Anon-Key in <code>cloud-config.js</code> ein und führe das SQL aus <code>supabase-setup.sql</code> im Supabase SQL-Editor aus.</p>
     </div>
   </dialog>
+  <dialog id="watch-editor" aria-labelledby="watch-editor-title">
+    <div class="dialog-head">
+      <h2 id="watch-editor-title">Titel zur Watchlist hinzufügen</h2>
+      <button class="icon-button" type="button" data-action="close-watch-editor" aria-label="Dialog schließen">×</button>
+    </div>
+    <form class="dialog-form" id="watch-editor-form">
+      <div class="field">
+        <label for="watch-title">Titel</label>
+        <input id="watch-title" maxlength="100" autocomplete="off" required>
+      </div>
+      <div class="field">
+        <label for="watch-type">Art</label>
+        <select id="watch-type">
+          <option value="film">Film</option>
+          <option value="series">Serie</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="watch-status-input">Status</label>
+        <select id="watch-status-input">
+          <option value="planned">Auf der Liste</option>
+          <option value="watching">Schaue ich</option>
+          <option value="watched">Gesehen</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="watch-detail">Notiz (optional)</label>
+        <textarea id="watch-detail" maxlength="500" placeholder="Zum Beispiel: Staffel 2 weiterschauen"></textarea>
+      </div>
+      <div class="dialog-actions">
+        <button class="quiet-button" type="button" data-action="close-watch-editor">Abbrechen</button>
+        <button class="primary-button" type="submit">Speichern</button>
+      </div>
+    </form>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="./cloud-config.js"></script>
@@ -456,16 +523,18 @@
       const widgetsStorageKey = "mein-bereich-widgets-v1";
       const cloudSessionStorageKey = "mein-bereich-cloud-session-v1";
       const cloudConfig = window.MEIN_BEREICH_CLOUD || {};
-      const widgetDefaults = { overview: true, timer: true, search: true, links: true, tasks: true, notes: true, habits: true, calendar: true };
+      const widgetDefaults = { overview: true, timer: true, search: true, links: true, tasks: true, notes: true, habits: true, calendar: true, watchlist: true };
       const defaults = {
         profile: { name: "Dein Name", intro: "Ein Ort für deine Ideen, Links und den Alltag. Füge hinzu, was dir wichtig ist." },
         links: [],
         tasks: [],
         notes: [],
         habits: [],
-        events: []
+        events: [],
+        watchlist: []
       };
       const labels = { profile: "Begrüßung", link: "Link", task: "Aufgabe", note: "Notiz", habit: "Routine", event: "Termin" };
+      const watchStatuses = { planned: "Auf der Liste", watching: "Schaue ich", watched: "Gesehen" };
       const motivationalQuotes = [
         "Jeder kleine Schritt bringt dich deinem Ziel näher.",
         "Du musst nicht alles auf einmal schaffen – fang einfach an.",
@@ -482,6 +551,8 @@
       const state = loadState();
       const dialog = document.getElementById("editor");
       const form = document.getElementById("editor-form");
+      const watchEditor = document.getElementById("watch-editor");
+      const watchEditorForm = document.getElementById("watch-editor-form");
       const toast = document.getElementById("toast");
       const searchInput = document.getElementById("search-input");
       const widgetsDialog = document.getElementById("widgets-dialog");
@@ -500,6 +571,7 @@
         document.getElementById("cloud-auth-actions")
       ];
       let editing = { kind: null, id: null };
+      let editingWatchId = null;
       let toastTimer;
       let timerInterval;
       let cloudSession = loadCloudSession();
@@ -670,6 +742,12 @@
             ...item,
             time: item.time || "",
             detail: item.detail || ""
+          })) : [],
+          watchlist: Array.isArray(parsed.watchlist) ? parsed.watchlist.filter(validWatchItem).map(item => ({
+            ...item,
+            type: item.type === "series" ? "series" : "film",
+            status: watchStatuses[item.status] ? item.status : "planned",
+            detail: typeof item.detail === "string" ? item.detail : ""
           })) : []
         };
       }
@@ -679,6 +757,12 @@
       function validEvent(item) {
         return validEntry(item) && validDate(item.date) &&
           (item.time === undefined || item.time === "" || (typeof item.time === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(item.time))) &&
+          (item.detail === undefined || typeof item.detail === "string");
+      }
+      function validWatchItem(item) {
+        return validEntry(item) &&
+          (item.type === undefined || item.type === "film" || item.type === "series") &&
+          (item.status === undefined || Object.hasOwn(watchStatuses, item.status)) &&
           (item.detail === undefined || typeof item.detail === "string");
       }
       function validDate(value) {
@@ -697,7 +781,7 @@
         return priority === "high" ? 0 : priority === "low" ? 2 : 1;
       }
       function collectionFor(kind) {
-        return state[kind === "event" ? "events" : `${kind}s`];
+        return kind === "event" ? state.events : kind === "watch" ? state.watchlist : state[`${kind}s`];
       }
       function validLink(item) {
         if (!validEntry(item) || typeof item.url !== "string") return false;
@@ -1081,6 +1165,7 @@
         renderNotes();
         renderHabits();
         renderCalendar();
+        renderWatchlist();
         applyWidgets();
       }
       function matchesSearch(...values) {
@@ -1298,6 +1383,62 @@
           container.append(row);
         });
       }
+      function renderWatchlist() {
+        const container = document.getElementById("watchlist-list");
+        container.replaceChildren();
+        const filter = document.getElementById("watch-filter").value;
+        const items = state.watchlist.filter(item =>
+          matchesSearch(item.title, item.detail, item.type === "series" ? "Serie" : "Film", watchStatuses[item.status]) &&
+          (filter === "all" || item.status === filter)
+        );
+        if (!items.length) {
+          if (searchInput.value.trim()) emptyMessage(container, "Nichts gefunden.", "Passe deinen Suchbegriff an oder lösche ihn.");
+          else if (filter !== "all") emptyMessage(container, "Keine passenden Titel.", "Wähle einen anderen Statusfilter.");
+          else emptyMessage(container, "Deine nächste Filmidee wartet hier.", "Füge Filme oder Serien hinzu und lass das Roulette für dich wählen.");
+          return;
+        }
+        items.forEach(item => {
+          const row = el("div", "entry watch-entry");
+          const text = el("span", "entry-text");
+          text.append(el("span", "entry-title", item.title));
+          const meta = el("span", "watch-meta");
+          meta.append(
+            el("span", "watch-type", item.type === "series" ? "Serie" : "Film"),
+            el("span", "watch-status", watchStatuses[item.status])
+          );
+          if (item.detail) meta.append(el("span", "entry-subtitle", item.detail));
+          text.append(meta);
+          const status = document.createElement("select");
+          status.className = "watch-status-select";
+          status.setAttribute("aria-label", `Status für ${item.title}`);
+          Object.entries(watchStatuses).forEach(([value, label]) => {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = label;
+            status.append(option);
+          });
+          status.value = item.status;
+          status.dataset.action = "watch-status";
+          status.dataset.id = item.id;
+          const controls = el("span", "entry-controls");
+          controls.append(control("watch-edit", "watch", item.id, `${item.title} bearbeiten`, "✎"));
+          controls.append(control("watch-delete", "watch", item.id, `${item.title} löschen`, "×"));
+          row.append(text, status, controls);
+          container.append(row);
+        });
+      }
+      function openWatchEditor(id) {
+        const existing = id ? state.watchlist.find(item => item.id === id) : null;
+        if (id && !existing) return;
+        editingWatchId = existing ? existing.id : null;
+        document.getElementById("watch-editor-title").textContent = existing ? "Watchlist-Titel bearbeiten" : "Titel zur Watchlist hinzufügen";
+        document.getElementById("watch-title").value = existing?.title || "";
+        document.getElementById("watch-type").value = existing?.type || "film";
+        document.getElementById("watch-status-input").value = existing?.status || "planned";
+        document.getElementById("watch-detail").value = existing?.detail || "";
+        watchEditor.showModal();
+        document.getElementById("watch-title").focus();
+      }
       function openEditor(kind, id) {
         editing = { kind, id: id || null };
         const existing = id && kind !== "profile" ? collectionFor(kind).find(item => item.id === id) : null;
@@ -1412,6 +1553,30 @@
           notify("Gespeichert.");
         }
       });
+      watchEditorForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const title = document.getElementById("watch-title").value.trim();
+        if (!title) return notify("Bitte gib einen Titel ein.");
+        const values = {
+          title,
+          type: document.getElementById("watch-type").value,
+          status: document.getElementById("watch-status-input").value,
+          detail: document.getElementById("watch-detail").value.trim()
+        };
+        const index = state.watchlist.findIndex(item => item.id === editingWatchId);
+        const previous = index === -1 ? null : state.watchlist[index];
+        const item = { ...(previous || {}), ...(previous ? {} : { id: crypto.randomUUID() }), ...values };
+        if (index === -1) state.watchlist.unshift(item);
+        else state.watchlist[index] = item;
+        if (save()) {
+          watchEditor.close();
+          notify(previous ? "Watchlist aktualisiert." : "Zur Watchlist hinzugefügt.");
+        } else if (previous) {
+          state.watchlist[index] = previous;
+        } else {
+          state.watchlist = state.watchlist.filter(entry => entry.id !== item.id);
+        }
+      });
       document.addEventListener("click", event => {
         const button = event.target.closest("[data-action]");
         if (!button) return;
@@ -1421,6 +1586,19 @@
         if (action === "edit-profile") openEditor("profile");
         if (action === "close-dialog") dialog.close();
         if (action === "close-widgets") widgetsDialog.close();
+        if (action === "close-watch-editor") watchEditor.close();
+        if (action === "watch-edit") openWatchEditor(id);
+        if (action === "watch-delete") {
+          const index = state.watchlist.findIndex(item => item.id === id);
+          if (index === -1) return;
+          if (!confirm(`„${state.watchlist[index].title}“ wirklich aus der Watchlist löschen?`)) return;
+          const [removed] = state.watchlist.splice(index, 1);
+          if (save()) notify("Titel aus der Watchlist gelöscht.");
+          else {
+            state.watchlist.splice(index, 0, removed);
+            render();
+          }
+        }
         if (action === "delete") {
           const collection = collectionFor(kind);
           const index = collection.findIndex(item => item.id === id);
@@ -1448,6 +1626,24 @@
         renderNotes();
         renderHabits();
         renderCalendar();
+        renderWatchlist();
+      });
+      document.getElementById("watch-add").addEventListener("click", () => openWatchEditor());
+      document.getElementById("watch-filter").addEventListener("change", renderWatchlist);
+      document.getElementById("watch-roulette").addEventListener("click", () => {
+        const candidates = state.watchlist.filter(item => item.status === "planned" && matchesSearch(item.title, item.detail, item.type === "series" ? "Serie" : "Film"));
+        const result = document.getElementById("watch-result");
+        if (!candidates.length) {
+          result.hidden = false;
+          result.replaceChildren(document.createTextNode("Füge zuerst einen Titel mit dem Status „Auf der Liste“ hinzu."));
+          return;
+        }
+        const choice = candidates[Math.floor(Math.random() * candidates.length)];
+        result.replaceChildren(
+          document.createTextNode(`Das Roulette hat gewählt · ${choice.type === "series" ? "Serie" : "Film"}`),
+          el("strong", "", choice.title)
+        );
+        result.hidden = false;
       });
       document.getElementById("calendar-prev").addEventListener("click", () => changeCalendarMonth(-1));
       document.getElementById("calendar-next").addEventListener("click", () => changeCalendarMonth(1));
@@ -1557,6 +1753,17 @@
       });
       document.addEventListener("change", event => {
         const input = event.target;
+        if (input.matches('[data-action="watch-status"]')) {
+          const item = state.watchlist.find(entry => entry.id === input.dataset.id);
+          if (!item || !Object.hasOwn(watchStatuses, input.value)) return;
+          const previous = item.status;
+          item.status = input.value;
+          if (!save()) {
+            item.status = previous;
+            render();
+          }
+          return;
+        }
         if (input.matches('[data-action="toggle-habit"]')) {
           const habit = state.habits.find(item => item.id === input.dataset.id);
           if (!habit) return;
@@ -1605,20 +1812,21 @@
         if (!file) return;
         try {
           const imported = JSON.parse(await file.text());
-          if (!imported || typeof imported !== "object" || !imported.profile || !Array.isArray(imported.links) || !Array.isArray(imported.tasks) || !Array.isArray(imported.notes) || (imported.habits !== undefined && !Array.isArray(imported.habits)) || (imported.events !== undefined && !Array.isArray(imported.events))) {
+          if (!imported || typeof imported !== "object" || !imported.profile || !Array.isArray(imported.links) || !Array.isArray(imported.tasks) || !Array.isArray(imported.notes) || (imported.habits !== undefined && !Array.isArray(imported.habits)) || (imported.events !== undefined && !Array.isArray(imported.events)) || (imported.watchlist !== undefined && !Array.isArray(imported.watchlist))) {
             throw new Error("Ungültiges Sicherungsformat");
           }
-          if (!imported.links.every(validLink) || !imported.tasks.every(validEntry) || !imported.notes.every(validEntry) || (imported.habits || []).some(item => !validEntry(item) || (item.completedDates !== undefined && (!Array.isArray(item.completedDates) || !item.completedDates.every(validDate)))) || (imported.events || []).some(item => !validEvent(item))) {
+          if (!imported.links.every(validLink) || !imported.tasks.every(validEntry) || !imported.notes.every(validEntry) || (imported.habits || []).some(item => !validEntry(item) || (item.completedDates !== undefined && (!Array.isArray(item.completedDates) || !item.completedDates.every(validDate)))) || (imported.events || []).some(item => !validEvent(item)) || (imported.watchlist || []).some(item => !validWatchItem(item))) {
             throw new Error("Einträge in der Sicherung sind ungültig");
           }
-          if (!confirm(`Diese Sicherung ersetzt deine aktuellen Einträge (${state.links.length} Links, ${state.tasks.length} Aufgaben, ${state.notes.length} Notizen, ${state.habits.length} Routinen und ${state.events.length} Termine). Fortfahren?`)) return;
+          if (!confirm(`Diese Sicherung ersetzt deine aktuellen Einträge (${state.links.length} Links, ${state.tasks.length} Aufgaben, ${state.notes.length} Notizen, ${state.habits.length} Routinen, ${state.events.length} Termine und ${state.watchlist.length} Watchlist-Titel). Fortfahren?`)) return;
           const previous = {
             profile: state.profile,
             links: state.links,
             tasks: state.tasks,
             notes: state.notes,
             habits: state.habits,
-            events: state.events
+            events: state.events,
+            watchlist: state.watchlist
           };
           state.profile = {
             name: String(imported.profile.name || defaults.profile.name),
@@ -1637,6 +1845,12 @@
             completedDates: [...new Set((item.completedDates || []).filter(validDate))].sort().slice(-400)
           }));
           state.events = (imported.events || []).filter(validEvent).map(item => ({ ...item, time: item.time || "", detail: item.detail || "" }));
+          state.watchlist = (imported.watchlist || []).filter(validWatchItem).map(item => ({
+            ...item,
+            type: item.type === "series" ? "series" : "film",
+            status: watchStatuses[item.status] ? item.status : "planned",
+            detail: typeof item.detail === "string" ? item.detail : ""
+          }));
           if (save()) notify("Sicherung erfolgreich geladen.");
           else {
             state.profile = previous.profile;
@@ -1645,6 +1859,7 @@
             state.notes = previous.notes;
             state.habits = previous.habits;
             state.events = previous.events;
+            state.watchlist = previous.watchlist;
           }
         } catch (error) {
           notify("Diese Datei konnte nicht als Sicherung geladen werden. Bitte wähle eine gültige JSON-Sicherung.");
