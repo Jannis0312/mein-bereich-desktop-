@@ -1,0 +1,40 @@
+{
+  "name": "mein-bereich",
+  "version": "1.0.1",
+  "private": true,
+  "description": "Persönliches Dashboard als Windows-Desktop-App",
+  "main": "desktop.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis",
+    "publish": "electron-builder --win nsis --publish always"
+  },
+  "devDependencies": {
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.3"
+  },
+  "build": {
+    "appId": "de.meinbereich.dashboard",
+    "productName": "Mein Bereich",
+    "files": [
+      "index.html",
+      "desktop.cjs"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Jannis0312",
+      "repo": "mein-bereich-desktop-",
+      "releaseType": "release"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

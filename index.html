@@ -1,0 +1,1265 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f5f0">
+  <meta name="description" content="Dein persönlicher, anpassbarer Bereich für Links, Notizen und Aufgaben.">
+  <title>Mein Bereich</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f6f5f0;
+      --card: #fffefa;
+      --ink: #292d28;
+      --muted: #6d7168;
+      --line: #e9e8e0;
+      --green: #526b4d;
+      --green-pale: #e7eee2;
+      --yellow: #f4e9c8;
+      --shadow: 0 14px 35px rgba(47, 52, 42, .045);
+      --soft-surface: #f0f1e9;
+      --soft-line: #f0efe9;
+      --note-surface: #faf6e9;
+      --note-alt-surface: #f0f3ed;
+      --badge-surface: #f0f1eb;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --paper: #171a17;
+      --card: #222622;
+      --ink: #e9ece5;
+      --muted: #b1b8ac;
+      --line: #353b34;
+      --green: #a4c397;
+      --green-pale: #2b392b;
+      --shadow: 0 14px 35px rgba(0, 0, 0, .16);
+      --soft-surface: #2a3029;
+      --soft-line: #343a33;
+      --note-surface: #342f23;
+      --note-alt-surface: #283229;
+      --badge-surface: #30372f;
+    }
+    :root[data-theme="dark"] .overview { border-color: #354434; background: #222d22; }
+    :root[data-theme="dark"] .overview-count { color: #c0cbbb; }
+    :root[data-theme="dark"] .progress-track { background: #3b4939; }
+    :root[data-theme="dark"] .overview-quick input,
+    :root[data-theme="dark"] .field input,
+    :root[data-theme="dark"] .field textarea,
+    :root[data-theme="dark"] .field select { border-color: var(--line); background: #1d211d; color: var(--ink); }
+    :root[data-theme="dark"] .entry { border-color: var(--soft-line); }
+    :root[data-theme="dark"] .site-dot,
+    :root[data-theme="dark"] .task-badge { background: var(--badge-surface); color: var(--muted); }
+    :root[data-theme="dark"] .task-badge.priority-high,
+    :root[data-theme="dark"] .task-badge.is-overdue { background: #492e29; color: #ffc0ad; }
+    :root[data-theme="dark"] .task-badge.priority-low { background: #29382c; color: #bed7b6; }
+    :root[data-theme="dark"] .note-card { background: var(--note-surface); }
+    :root[data-theme="dark"] .note-card:nth-child(even) { background: var(--note-alt-surface); }
+    :root[data-theme="dark"] .note-body { color: #c3c9be; }
+    :root[data-theme="dark"] .field label { color: var(--muted); }
+    :root[data-theme="dark"] .quiet-button:hover,
+    :root[data-theme="dark"] .icon-button:hover,
+    :root[data-theme="dark"] .add-button:hover { background: var(--soft-surface); border-color: #4c574a; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; }
+    button, input, textarea { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+      outline: 3px solid #96ad82;
+      outline-offset: 3px;
+    }
+    button { color: inherit; }
+    .shell { width: min(1100px, calc(100% - 52px)); margin-inline: auto; }
+    .topbar { height: 78px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font-size: 15px; font-weight: 700; letter-spacing: -.03em; }
+    .brand-icon { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 11px; background: var(--green); color: white; font-family: Georgia, serif; font-size: 19px; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .quiet-button, .primary-button, .icon-button, .add-button {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px;
+      padding: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card);
+      cursor: pointer; font-size: 12px; font-weight: 620; transition: background .18s, border-color .18s, transform .18s;
+    }
+    .quiet-button:hover, .icon-button:hover, .add-button:hover { background: #f0f1e9; border-color: #d8ddcf; }
+    .primary-button { border-color: var(--green); background: var(--green); color: white; }
+    .primary-button:hover { background: #40583d; border-color: #40583d; }
+    .icon-button { width: 34px; min-height: 34px; padding: 0; border-radius: 9px; color: var(--muted); font-size: 16px; }
+    .intro { padding: 57px 0 37px; }
+    .date-line { color: var(--green); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { margin: 12px 0 9px; font-size: clamp(37px, 6vw, 55px); font-weight: 560; letter-spacing: -.065em; line-height: 1.08; }
+    .intro-copy { max-width: 540px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
+    .overview { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 24px; margin: 0 0 20px; padding: 20px 22px; border: 1px solid #dfe5d9; border-radius: 15px; background: #edf1e8; }
+    .overview-main { min-width: 0; }
+    .overview-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 11px; }
+    .overview-label { font-size: 13px; font-weight: 700; }
+    .overview-count { color: #6d7567; font-size: 11px; }
+    .progress-track { height: 7px; overflow: hidden; border-radius: 99px; background: #d9e0d3; }
+    .progress-fill { width: 0; height: 100%; border-radius: inherit; background: var(--green); transition: width .25s ease; }
+    .overview-quick { display: flex; gap: 8px; }
+    .overview-quick input { width: clamp(145px, 20vw, 235px); min-width: 0; padding: 10px 12px; border: 1px solid #d9dfd3; border-radius: 9px; background: rgba(255,255,255,.8); font-size: 12px; }
+    .overview-quick .primary-button { min-height: 38px; padding-inline: 12px; font-size: 11px; }
+    .focus-panel { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 18px; margin: 0 0 20px; padding: 16px 20px; border: 1px solid var(--line); border-radius: 15px; background: var(--card); box-shadow: var(--shadow); }
+    .timer-face { --timer-progress: 0%; display: grid; width: 66px; height: 66px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: conic-gradient(var(--green) var(--timer-progress), var(--soft-surface) 0); }
+    .timer-face-inner { display: grid; width: 56px; height: 56px; place-items: center; border-radius: 50%; background: var(--card); font-variant-numeric: tabular-nums; font-size: 16px; font-weight: 750; letter-spacing: -.04em; }
+    .focus-info { min-width: 0; }
+    .focus-info h2 { margin: 0; font-size: 13px; font-weight: 720; }
+    .focus-info p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .focus-controls { display: flex; align-items: center; justify-content: flex-end; gap: 7px; }
+    .focus-controls .quiet-button, .focus-controls .primary-button { min-height: 36px; padding-inline: 11px; font-size: 11px; }
+    .timer-duration { min-height: 36px; padding: 0 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--card); color: var(--muted); font-size: 11px; }
+    .shortcut-hint { margin: -7px 0 17px; color: var(--muted); font-size: 10px; text-align: right; }
+    kbd { padding: 2px 5px; border: 1px solid var(--line); border-radius: 4px; background: var(--card); font: inherit; }
+    .search-wrap { position: relative; margin: 0 0 19px; }
+    .search-wrap::before { content: "⌕"; position: absolute; left: 14px; top: 7px; color: var(--muted); font-size: 22px; line-height: 1; pointer-events: none; }
+    .search-input { width: 100%; height: 43px; padding: 0 15px 0 43px; border: 1px solid var(--line); border-radius: 11px; background: var(--card); color: var(--ink); font-size: 12px; box-shadow: 0 5px 17px rgba(47, 52, 42, .025); }
+    .search-input::placeholder { color: #96988f; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(290px, .85fr); gap: 19px; padding-bottom: 58px; }
+    .column { display: grid; align-content: start; gap: 19px; }
+    .panel { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 15px; background: var(--card); box-shadow: var(--shadow); }
+    .panel[hidden], .overview[hidden], .focus-panel[hidden], .search-wrap[hidden] { display: none; }
+    .panel-head { min-height: 70px; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 15px 20px; border-bottom: 1px solid var(--line); }
+    .panel-title { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 15px; font-weight: 690; letter-spacing: -.025em; }
+    .panel-heading-group { display: flex; min-width: 0; align-items: center; gap: 10px; }
+    .title-icon { display: grid; width: 30px; height: 30px; flex: 0 0 auto; place-items: center; border-radius: 9px; background: var(--green-pale); color: var(--green); font-size: 15px; }
+    .add-button { min-height: 35px; padding: 0 11px; color: var(--green); font-size: 11px; }
+    .task-filter { max-width: 126px; min-height: 34px; padding: 0 9px; border: 1px solid var(--line); border-radius: 9px; background: var(--card); color: var(--muted); font-size: 11px; }
+    .panel-content { padding: 7px 20px 18px; }
+    .calendar-toolbar { display: flex; align-items: center; gap: 7px; }
+    .calendar-month { min-width: 115px; color: var(--ink); font-size: 12px; font-weight: 680; text-align: center; }
+    .calendar-toolbar .icon-button { width: 30px; min-height: 30px; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+    .calendar-weekday { padding: 7px 0; color: var(--muted); font-size: 9px; font-weight: 700; text-align: center; text-transform: uppercase; }
+    .calendar-day { position: relative; min-width: 0; min-height: 42px; padding: 7px 2px 12px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ink); cursor: pointer; font-size: 11px; }
+    .calendar-day:hover { background: var(--soft-surface); }
+    .calendar-day.outside-month { color: var(--muted); opacity: .55; }
+    .calendar-day.today { border-color: var(--green); color: var(--green); font-weight: 750; }
+    .calendar-day.selected { background: var(--green); color: white; }
+    .calendar-dots { position: absolute; right: 0; bottom: 4px; left: 0; display: flex; justify-content: center; gap: 3px; }
+    .calendar-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--green); }
+    .calendar-day.selected .calendar-dot { background: white; }
+    .calendar-day.today:not(.selected) .calendar-dot { background: var(--green); }
+    .calendar-agenda { margin-top: 15px; padding-top: 13px; border-top: 1px solid var(--line); }
+    .calendar-agenda-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+    .calendar-agenda-title { margin: 0; font-size: 12px; font-weight: 700; }
+    .calendar-event-time { width: 42px; flex: 0 0 auto; color: var(--green); font-size: 11px; font-weight: 700; }
+    .calendar-event-detail { margin-top: 4px; color: var(--muted); font-size: 11px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+    :root[data-theme="dark"] .calendar-day.selected { color: #172017; }
+    :root[data-theme="dark"] .calendar-day.selected .calendar-dot { background: #172017; }
+    :root[data-theme="dark"] .calendar-day.today:not(.selected) { color: var(--green); }
+    .entry { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 12px 0; border-bottom: 1px solid var(--soft-line); }
+    .entry:last-child { border-bottom: 0; }
+    .entry-main { display: flex; min-width: 0; flex: 1; align-items: center; gap: 12px; }
+    .entry-text { min-width: 0; }
+    .entry-title { display: block; overflow: hidden; color: var(--ink); font-size: 13px; font-weight: 630; text-overflow: ellipsis; white-space: nowrap; }
+    .entry-subtitle { display: block; overflow: hidden; margin-top: 4px; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    a.entry-main:hover .entry-title { color: var(--green); }
+    .site-dot { width: 32px; height: 32px; display: grid; flex: 0 0 auto; place-items: center; border-radius: 10px; background: var(--soft-surface); color: var(--green); font-family: Georgia, serif; font-size: 15px; }
+    .entry-controls { display: flex; gap: 4px; opacity: .55; }
+    .entry:hover .entry-controls, .entry:focus-within .entry-controls { opacity: 1; }
+    .task-check { width: 18px; height: 18px; flex: 0 0 auto; margin: 0; accent-color: var(--green); cursor: pointer; }
+    .task-done .entry-title { color: #9a9c95; text-decoration: line-through; }
+    .task-done { opacity: .7; }
+    .task-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .task-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; border-radius: 99px; background: var(--badge-surface); color: var(--muted); font-size: 10px; }
+    .task-badge.priority-high { background: #f8e5df; color: #994e3e; }
+    .task-badge.priority-low { background: #edf1e9; color: #5d7256; }
+    .task-badge.is-overdue { background: #f8e5df; color: #994e3e; font-weight: 700; }
+    .habit-summary { margin: 0; padding: 0 0 10px; color: var(--muted); font-size: 11px; }
+    .habit-summary strong { color: var(--green); }
+    .habit-check { width: 20px; height: 20px; flex: 0 0 auto; margin: 0; accent-color: var(--green); cursor: pointer; }
+    .habit-done .entry-title { color: var(--green); }
+    .habit-streak { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; color: #8b6a2a; font-size: 10px; }
+    :root[data-theme="dark"] .habit-streak { color: #e4c77e; }
+    .note-card { margin: 12px 0; padding: 15px 16px; border-radius: 11px; background: var(--note-surface); }
+    .note-card:nth-child(even) { background: var(--note-alt-surface); }
+    .note-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .note-title { margin: 0; font-size: 13px; font-weight: 680; }
+    .note-title-wrap { display: flex; min-width: 0; align-items: center; gap: 7px; }
+    .note-pin { color: #986d1d; font-size: 12px; }
+    .note-body { margin: 9px 0 0; color: #6f726a; font-size: 12px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .note-controls { display: flex; gap: 3px; margin: -6px -7px 0 0; }
+    .note-controls .icon-button { background: transparent; border-color: transparent; }
+    .empty { padding: 20px 8px 18px; color: var(--muted); font-size: 12px; line-height: 1.6; text-align: center; }
+    .empty strong { display: block; margin-bottom: 4px; color: var(--ink); font-weight: 650; }
+    .privacy { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .privacy-icon { color: var(--green); }
+    footer { padding: 17px 0 29px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; text-align: center; }
+    dialog { width: min(440px, calc(100% - 32px)); padding: 0; border: 1px solid var(--line); border-radius: 16px; background: var(--card); color: var(--ink); box-shadow: 0 22px 80px rgba(20, 25, 19, .2); }
+    dialog::backdrop { background: rgba(30, 34, 28, .35); backdrop-filter: blur(3px); }
+    .dialog-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 21px; border-bottom: 1px solid var(--line); }
+    .dialog-head h2 { margin: 0; font-size: 16px; font-weight: 680; }
+    .dialog-form { display: grid; gap: 15px; padding: 20px 21px 21px; }
+    .field { display: grid; gap: 7px; }
+    .field[hidden] { display: none; }
+    .field label { color: #5e625a; font-size: 11px; font-weight: 650; }
+    .field input, .field textarea, .field select { width: 100%; padding: 11px 12px; border: 1px solid #dfdfd6; border-radius: 9px; background: #fff; color: var(--ink); font-size: 13px; }
+    .field textarea { min-height: 110px; resize: vertical; line-height: 1.55; }
+    .field[hidden] { display: none; }
+    .widget-options { display: grid; gap: 9px; }
+    .widget-option { display: flex; align-items: center; gap: 11px; padding: 12px 13px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); cursor: pointer; }
+    .widget-option input { width: 17px; height: 17px; flex: 0 0 auto; margin: 0; accent-color: var(--green); }
+    .widget-option-text { display: grid; gap: 3px; }
+    .widget-option-text strong { font-size: 12px; font-weight: 650; }
+    .widget-option-text small { color: var(--muted); font-size: 10px; }
+    .widget-reset { margin-right: auto; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 9px; padding-top: 4px; }
+    .toast { position: fixed; z-index: 10; right: 22px; bottom: 20px; max-width: min(440px, calc(100% - 44px)); padding: 13px 16px; border-radius: 11px; background: var(--ink); color: white; box-shadow: 0 10px 30px #171a1640; font-size: 12px; line-height: 1.5; }
+    .toast[hidden] { display: none; }
+    #import-file { display: none; }
+    @media (max-width: 700px) {
+      .shell { width: min(100% - 34px, 540px); }
+      .topbar { height: 68px; }
+      .top-actions { gap: 7px; }
+      .quiet-button { width: 39px; min-height: 39px; overflow: hidden; padding: 0; font-size: 0; }
+      .quiet-button span { font-size: 15px; }
+      .intro { padding: 42px 0 28px; }
+      .overview { grid-template-columns: 1fr; gap: 15px; padding: 17px; }
+      .overview-quick input { width: 100%; }
+      .focus-panel { grid-template-columns: auto minmax(0, 1fr); gap: 12px; padding: 14px; }
+      .focus-controls { grid-column: 1 / -1; justify-content: flex-start; flex-wrap: wrap; }
+      .shortcut-hint { display: none; }
+      .layout { grid-template-columns: 1fr; gap: 15px; }
+      .column { gap: 15px; }
+      .panel-head { padding-inline: 16px; }
+      .panel-content { padding-inline: 16px; }
+      .entry-controls { opacity: 1; }
+      .privacy { margin-top: 14px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <header class="shell topbar">
+    <a class="brand" href="#" aria-label="Mein Bereich, Startseite"><span class="brand-icon" aria-hidden="true">m</span>mein bereich</a>
+    <div class="top-actions">
+      <button class="quiet-button" type="button" id="export-button" title="Sicherung herunterladen"><span aria-hidden="true">↓</span> Sicherung</button>
+      <button class="quiet-button" type="button" id="import-button" title="Sicherung wiederherstellen"><span aria-hidden="true">↑</span> Laden</button>
+      <button class="quiet-button" type="button" id="theme-toggle" aria-pressed="false" title="Farbschema wechseln"><span aria-hidden="true">◐</span> <span id="theme-label">Dunkelmodus</span></button>
+      <button class="quiet-button" type="button" id="widgets-button" title="Angezeigte Bereiche auswählen"><span aria-hidden="true">▦</span> <span>Widgets</span></button>
+      <button class="quiet-button" type="button" data-action="edit-profile" title="Begrüßung bearbeiten"><span aria-hidden="true">⚙</span> Anpassen</button>
+      <input id="import-file" type="file" accept="application/json,.json">
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="intro" aria-labelledby="welcome">
+      <div class="date-line" id="today"></div>
+      <h1 id="welcome"></h1>
+      <p class="intro-copy" id="intro-copy"></p>
+      <p class="intro-copy" id="motivation" aria-live="polite"></p>
+    </section>
+
+    <section class="overview" data-widget="overview" aria-label="Tagesübersicht">
+      <div class="overview-main">
+        <div class="overview-top">
+          <span class="overview-label">Dein Fokus heute</span>
+          <span class="overview-count" id="task-progress-text"></span>
+        </div>
+        <div class="progress-track" id="progress-track" role="progressbar" aria-label="Erledigte Aufgaben" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+      <form class="overview-quick" id="quick-task-form" aria-label="Aufgabe schnell hinzufügen">
+        <input id="quick-task-input" maxlength="70" aria-label="Neue Aufgabe" placeholder="Aufgabe schnell notieren …">
+        <button class="primary-button" type="submit">＋ Aufgabe</button>
+      </form>
+    </section>
+    <section class="focus-panel" data-widget="timer" aria-label="Fokus-Timer">
+      <div class="timer-face" id="timer-face" role="timer" aria-label="Fokus-Timer">
+        <div class="timer-face-inner" id="timer-display">25:00</div>
+      </div>
+      <div class="focus-info">
+        <h2 id="timer-heading">Fokuszeit</h2>
+        <p id="timer-status">Eine Sache auf einmal. Du schaffst das.</p>
+      </div>
+      <div class="focus-controls">
+        <select class="timer-duration" id="timer-duration" aria-label="Fokusdauer">
+          <option value="15">15 Min.</option>
+          <option value="25" selected>25 Min.</option>
+          <option value="45">45 Min.</option>
+          <option value="60">60 Min.</option>
+        </select>
+        <button class="primary-button" type="button" id="timer-toggle">▶ Start</button>
+        <button class="quiet-button" type="button" id="timer-reset">↺ Zurücksetzen</button>
+      </div>
+    </section>
+    <p class="shortcut-hint">Tastenkürzel: <kbd>/</kbd> Suche · <kbd>Strg</kbd> + <kbd>K</kbd> neue Aufgabe</p>
+    <div class="search-wrap" data-widget="search">
+      <input class="search-input" id="search-input" type="search" aria-label="Einträge durchsuchen" placeholder="Links, Aufgaben, Notizen und Termine durchsuchen …">
+    </div>
+
+    <section class="layout" aria-label="Deine persönlichen Inhalte">
+      <div class="column">
+        <section class="panel" data-widget="links" aria-labelledby="links-heading">
+          <div class="panel-head">
+            <h2 class="panel-title" id="links-heading"><span class="title-icon" aria-hidden="true">↗</span>Meine Links</h2>
+            <button class="add-button" type="button" data-action="add" data-kind="link">＋ Hinzufügen</button>
+          </div>
+          <div class="panel-content" id="links-list"></div>
+        </section>
+        <section class="panel" data-widget="tasks" aria-labelledby="tasks-heading">
+          <div class="panel-head">
+            <div class="panel-heading-group">
+              <h2 class="panel-title" id="tasks-heading"><span class="title-icon" aria-hidden="true">✓</span>Meine Aufgaben</h2>
+              <select class="task-filter" id="task-filter" aria-label="Aufgaben filtern">
+                <option value="all">Alle</option>
+                <option value="open">Offen</option>
+                <option value="done">Erledigt</option>
+              </select>
+            </div>
+            <button class="add-button" type="button" data-action="add" data-kind="task">＋ Hinzufügen</button>
+          </div>
+          <div class="panel-content" id="tasks-list"></div>
+        </section>
+      </div>
+
+      <div class="column">
+        <section class="panel" data-widget="notes" aria-labelledby="notes-heading">
+          <div class="panel-head">
+            <h2 class="panel-title" id="notes-heading"><span class="title-icon" aria-hidden="true">✎</span>Meine Notizen</h2>
+            <button class="add-button" type="button" data-action="add" data-kind="note">＋ Neue Notiz</button>
+          </div>
+          <div class="panel-content" id="notes-list"></div>
+        </section>
+        <section class="panel" data-widget="calendar" aria-labelledby="calendar-heading">
+          <div class="panel-head">
+            <h2 class="panel-title" id="calendar-heading"><span class="title-icon" aria-hidden="true">▦</span>Mein Kalender</h2>
+            <button class="add-button" type="button" data-action="add" data-kind="event">＋ Termin</button>
+          </div>
+          <div class="panel-content">
+            <div class="calendar-toolbar">
+              <button class="icon-button" type="button" id="calendar-prev" aria-label="Vorheriger Monat">‹</button>
+              <span class="calendar-month" id="calendar-month"></span>
+              <button class="icon-button" type="button" id="calendar-next" aria-label="Nächster Monat">›</button>
+              <button class="quiet-button" type="button" id="calendar-today" style="min-height:30px;padding:0 8px;font-size:10px">Heute</button>
+            </div>
+            <div class="calendar-grid" id="calendar-grid" role="grid" aria-label="Kalendermonat"></div>
+            <div class="calendar-agenda">
+              <div class="calendar-agenda-head">
+                <h3 class="calendar-agenda-title" id="calendar-agenda-title"></h3>
+              </div>
+              <div id="calendar-events"></div>
+            </div>
+          </div>
+        </section>
+        <section class="panel" data-widget="habits" aria-labelledby="habits-heading">
+          <div class="panel-head">
+            <h2 class="panel-title" id="habits-heading"><span class="title-icon" aria-hidden="true">✦</span>Meine Routinen</h2>
+            <button class="add-button" type="button" data-action="add" data-kind="habit">＋ Routine</button>
+          </div>
+          <div class="panel-content" id="habits-list"></div>
+        </section>
+        <aside class="privacy">
+          <span class="privacy-icon" aria-hidden="true">●</span>
+          <span>Deine Einträge bleiben in diesem Browser auf diesem Gerät. Sie sind nicht passwortgeschützt und werden nicht zwischen Geräten synchronisiert. Lade über „Sicherung“ regelmäßig eine Kopie herunter.</span>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell">Dein kleiner Ort im Internet · Nur für dich</footer>
+
+  <dialog id="editor" aria-labelledby="dialog-title">
+    <div class="dialog-head">
+      <h2 id="dialog-title"></h2>
+      <button class="icon-button" type="button" data-action="close-dialog" aria-label="Dialog schließen">×</button>
+    </div>
+    <form class="dialog-form" id="editor-form">
+      <div class="field" id="name-field"><label for="field-name">Name</label><input id="field-name" name="name" maxlength="70" autocomplete="off"></div>
+      <div class="field" id="detail-field"><label for="field-detail">Beschreibung</label><textarea id="field-detail" name="detail" maxlength="1000"></textarea></div>
+      <div class="field" id="url-field"><label for="field-url">Adresse (URL)</label><input id="field-url" name="url" type="text" inputmode="url" placeholder="https://beispiel.de" maxlength="2048"></div>
+      <div class="field" id="due-field"><label for="field-due">Fällig am (optional)</label><input id="field-due" name="due" type="date"></div>
+      <div class="field" id="priority-field"><label for="field-priority">Priorität</label><select id="field-priority" name="priority"><option value="normal">Normal</option><option value="high">Hoch</option><option value="low">Niedrig</option></select></div>
+      <div class="field" id="event-date-field"><label for="field-event-date">Datum</label><input id="field-event-date" name="event-date" type="date"></div>
+      <div class="field" id="event-time-field"><label for="field-event-time">Uhrzeit (optional)</label><input id="field-event-time" name="event-time" type="time"></div>
+      <div class="dialog-actions">
+        <button class="quiet-button" type="button" data-action="close-dialog">Abbrechen</button>
+        <button class="primary-button" type="submit">Speichern</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="widgets-dialog" aria-labelledby="widgets-title">
+    <div class="dialog-head">
+      <h2 id="widgets-title">Dein Dashboard anpassen</h2>
+      <button class="icon-button" type="button" data-action="close-widgets" aria-label="Dialog schließen">×</button>
+    </div>
+    <form class="dialog-form" id="widgets-form">
+      <div class="widget-options">
+        <label class="widget-option"><input type="checkbox" name="overview"><span class="widget-option-text"><strong>Tagesübersicht</strong><small>Aufgabenfortschritt und schnelles Hinzufügen</small></span></label>
+        <label class="widget-option"><input type="checkbox" name="timer"><span class="widget-option-text"><strong>Fokus-Timer</strong><small>Deine Konzentrationszeit</small></span></label>
+        <label class="widget-option"><input type="checkbox" name="search"><span class="widget-option-text"><strong>Suche</strong><small>Links, Aufgaben und Notizen durchsuchen</small></span></label>
+        <label class="widget-option"><input type="checkbox" name="links"><span class="widget-option-text"><strong>Meine Links</strong><small>Deine gespeicherten Webseiten</small></span></label>
+        <label class="widget-option"><input type="checkbox" name="tasks"><span class="widget-option-text"><strong>Meine Aufgaben</strong><small>Offene und erledigte Aufgaben</small></span></label>
+        <label class="widget-option"><input type="checkbox" name="notes"><span class="widget-option-text"><strong>Meine Notizen</strong><small>Deine persönlichen Gedanken</small></span></label>
+        <label class="widget-option"><input type="checkbox" name="habits"><span class="widget-option-text"><strong>Meine Routinen</strong><small>Tägliche Gewohnheiten und Serien</small></span></label>
+        <label class="widget-option"><input type="checkbox" name="calendar"><span class="widget-option-text"><strong>Mein Kalender</strong><small>Termine planen und kommende Tage ansehen</small></span></label>
+      </div>
+      <div class="dialog-actions">
+        <button class="quiet-button widget-reset" type="button" id="widgets-reset">Alle einblenden</button>
+        <button class="quiet-button" type="button" data-action="close-widgets">Abbrechen</button>
+        <button class="primary-button" type="submit">Speichern</button>
+      </div>
+    </form>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script>
+    (() => {
+      const storageKey = "mein-bereich-v1";
+      const timerStorageKey = "mein-bereich-timer-v1";
+      const themeStorageKey = "mein-bereich-theme-v1";
+      const widgetsStorageKey = "mein-bereich-widgets-v1";
+      const widgetDefaults = { overview: true, timer: true, search: true, links: true, tasks: true, notes: true, habits: true, calendar: true };
+      const defaults = {
+        profile: { name: "Dein Name", intro: "Ein Ort für deine Ideen, Links und den Alltag. Füge hinzu, was dir wichtig ist." },
+        links: [],
+        tasks: [],
+        notes: [],
+        habits: [],
+        events: []
+      };
+      const labels = { profile: "Begrüßung", link: "Link", task: "Aufgabe", note: "Notiz", habit: "Routine", event: "Termin" };
+      const motivationalQuotes = [
+        "Jeder kleine Schritt bringt dich deinem Ziel näher.",
+        "Du musst nicht alles auf einmal schaffen – fang einfach an.",
+        "Dein Einsatz heute ist dein Erfolg von morgen.",
+        "Glaube an dich und mach den ersten Schritt.",
+        "Auch langsamer Fortschritt ist Fortschritt.",
+        "Du kannst mehr, als du gerade denkst.",
+        "Mach heute zu einem Tag, auf den du stolz sein kannst.",
+        "Große Dinge entstehen aus kleinen Anfängen.",
+        "Bleib dran – du bist auf dem richtigen Weg.",
+        "Ein neuer Tag ist eine neue Chance."
+      ];
+      let lastMotivationalQuote = "";
+      const state = loadState();
+      const dialog = document.getElementById("editor");
+      const form = document.getElementById("editor-form");
+      const toast = document.getElementById("toast");
+      const searchInput = document.getElementById("search-input");
+      const widgetsDialog = document.getElementById("widgets-dialog");
+      const widgetsForm = document.getElementById("widgets-form");
+      const timerDuration = document.getElementById("timer-duration");
+      const timerToggle = document.getElementById("timer-toggle");
+      const timerFace = document.getElementById("timer-face");
+      const themeToggle = document.getElementById("theme-toggle");
+      let editing = { kind: null, id: null };
+      let toastTimer;
+      let timerInterval;
+
+      function loadWidgets() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(widgetsStorageKey));
+          return Object.fromEntries(Object.keys(widgetDefaults).map(key => [
+            key,
+            saved && typeof saved[key] === "boolean" ? saved[key] : widgetDefaults[key]
+          ]));
+        } catch (error) {
+          setTimeout(() => notify("Deine Widget-Auswahl konnte nicht geladen werden. Alle Bereiche werden angezeigt."), 0);
+          return { ...widgetDefaults };
+        }
+      }
+      const widgets = loadWidgets();
+      let selectedDate = localDateString();
+      let displayedMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+      function applyWidgets() {
+        document.querySelectorAll("[data-widget]").forEach(element => {
+          element.hidden = !widgets[element.dataset.widget];
+        });
+      }
+      function openWidgetsDialog() {
+        Object.entries(widgets).forEach(([key, visible]) => {
+          const checkbox = widgetsForm.elements.namedItem(key);
+          if (checkbox instanceof HTMLInputElement) checkbox.checked = visible;
+        });
+        widgetsDialog.showModal();
+      }
+
+      function loadTimer() {
+        const initial = { duration: 25, sessions: 0, running: false, endsAt: 0, remainingSeconds: 1500 };
+        try {
+          const saved = JSON.parse(localStorage.getItem(timerStorageKey));
+          if (!saved || typeof saved !== "object") return initial;
+          const duration = [15, 25, 45, 60].includes(Number(saved.duration)) ? Number(saved.duration) : initial.duration;
+          const sessions = Number.isSafeInteger(saved.sessions) && saved.sessions >= 0 ? saved.sessions : 0;
+          const running = saved.running === true && Number.isFinite(saved.endsAt);
+          const remainingSeconds = running
+            ? Math.max(0, Math.ceil((saved.endsAt - Date.now()) / 1000))
+            : Number.isSafeInteger(saved.remainingSeconds) ? Math.max(0, Math.min(duration * 60, saved.remainingSeconds)) : duration * 60;
+          if (running && remainingSeconds === 0) {
+            return { duration, sessions: sessions + 1, running: false, endsAt: 0, remainingSeconds: 0, justCompleted: true };
+          }
+          return { duration, sessions, running, endsAt: running ? saved.endsAt : 0, remainingSeconds };
+        } catch (error) {
+          setTimeout(() => notify("Der Fokus-Timer konnte nicht wiederhergestellt werden und wurde zurückgesetzt."), 0);
+          return initial;
+        }
+      }
+      const timer = loadTimer();
+      function saveTimer() {
+        try {
+          localStorage.setItem(timerStorageKey, JSON.stringify({
+            duration: timer.duration,
+            sessions: timer.sessions,
+            running: timer.running,
+            endsAt: timer.endsAt,
+            remainingSeconds: timer.remainingSeconds
+          }));
+          return true;
+        } catch (error) {
+          notify("Der Timer läuft, aber sein Zustand konnte nicht gespeichert werden.");
+          return false;
+        }
+      }
+      function applyTheme(theme) {
+        const dark = theme === "dark";
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+        themeToggle.setAttribute("aria-pressed", String(dark));
+        document.getElementById("theme-label").textContent = dark ? "Hellmodus" : "Dunkelmodus";
+        themeToggle.title = dark ? "Zum Hellmodus wechseln" : "Zum Dunkelmodus wechseln";
+      }
+      function loadTheme() {
+        try {
+          const saved = localStorage.getItem(themeStorageKey);
+          applyTheme(saved === "dark" ? "dark" : "light");
+        } catch (error) {
+          applyTheme("light");
+          setTimeout(() => notify("Die Farbschema-Einstellung konnte nicht geladen werden."), 0);
+        }
+      }
+      function remainingTimerSeconds() {
+        return timer.running ? Math.max(0, Math.ceil((timer.endsAt - Date.now()) / 1000)) : timer.remainingSeconds;
+      }
+      function updateTimer() {
+        const remaining = remainingTimerSeconds();
+        const minutes = String(Math.floor(remaining / 60)).padStart(2, "0");
+        const seconds = String(remaining % 60).padStart(2, "0");
+        document.getElementById("timer-display").textContent = `${minutes}:${seconds}`;
+        const total = timer.duration * 60;
+        const elapsedPercent = total ? ((total - remaining) / total) * 100 : 0;
+        timerFace.style.setProperty("--timer-progress", `${elapsedPercent}%`);
+        document.getElementById("timer-heading").textContent = timer.running ? "Fokuszeit läuft" : "Fokuszeit";
+        document.getElementById("timer-status").textContent = timer.running
+          ? `${timer.sessions} ${timer.sessions === 1 ? "Fokusrunde" : "Fokusrunden"} geschafft · Bleib dran.`
+          : `${timer.sessions} ${timer.sessions === 1 ? "Fokusrunde" : "Fokusrunden"} geschafft · Eine Sache auf einmal.`;
+        timerToggle.textContent = timer.running ? "Ⅱ Pause" : remaining === 0 ? "▶ Nochmal" : "▶ Start";
+        timerToggle.setAttribute("aria-label", timer.running ? "Fokus-Timer pausieren" : "Fokus-Timer starten");
+        timerDuration.value = String(timer.duration);
+      }
+      function finishTimer() {
+        if (!timer.running) return;
+        timer.running = false;
+        timer.endsAt = 0;
+        timer.remainingSeconds = 0;
+        timer.sessions += 1;
+        clearInterval(timerInterval);
+        updateTimer();
+        saveTimer();
+        notify("Fokusrunde geschafft! Gönn dir eine kurze Pause.");
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification("Fokusrunde geschafft", { body: "Gönn dir eine kurze Pause." });
+        }
+      }
+      function timerTick() {
+        if (remainingTimerSeconds() <= 0) finishTimer();
+        else updateTimer();
+      }
+      function startTimerTick() {
+        clearInterval(timerInterval);
+        if (timer.running) timerInterval = setInterval(timerTick, 1000);
+        updateTimer();
+      }
+
+      function loadState() {
+        try {
+          const saved = localStorage.getItem(storageKey);
+          if (!saved) return structuredClone(defaults);
+          const parsed = JSON.parse(saved);
+          if (!parsed || typeof parsed !== "object" || !parsed.profile || !Array.isArray(parsed.links) || !Array.isArray(parsed.tasks) || !Array.isArray(parsed.notes)) throw new Error("Ungültige gespeicherte Daten");
+          const habits = Array.isArray(parsed.habits) ? parsed.habits : [];
+          return {
+            profile: { name: String(parsed.profile.name || defaults.profile.name), intro: String(parsed.profile.intro || "") },
+            links: parsed.links.filter(validLink),
+            tasks: parsed.tasks.filter(validEntry).map(item => ({ ...item, done: Boolean(item.done), priority: ["high", "normal", "low"].includes(item.priority) ? item.priority : "normal", dueDate: validDate(item.dueDate) ? item.dueDate : "" })),
+            notes: parsed.notes.filter(validEntry).map(item => ({ ...item, pinned: Boolean(item.pinned) })),
+            habits: habits.filter(validEntry).map(item => ({
+              ...item,
+              completedDates: Array.isArray(item.completedDates) ? [...new Set(item.completedDates.filter(validDate))].slice(-400) : []
+            })),
+            events: Array.isArray(parsed.events) ? parsed.events.filter(validEvent) : []
+          };
+        } catch (error) {
+          setTimeout(() => notify("Gespeicherte Inhalte konnten nicht geladen werden. Du kannst eine Sicherung importieren."), 0);
+          return structuredClone(defaults);
+        }
+      }
+      function validEntry(item) {
+        return item && typeof item.id === "string" && typeof item.title === "string";
+      }
+      function validEvent(item) {
+        return validEntry(item) && validDate(item.date) &&
+          (item.time === undefined || item.time === "" || (typeof item.time === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(item.time))) &&
+          (item.detail === undefined || typeof item.detail === "string");
+      }
+      function validDate(value) {
+        if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+        const [year, month, day] = value.split("-").map(Number);
+        const parsed = new Date(Date.UTC(year, month - 1, day));
+        return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day;
+      }
+      function localDateString(date = new Date()) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+      function priorityRank(priority) {
+        return priority === "high" ? 0 : priority === "low" ? 2 : 1;
+      }
+      function collectionFor(kind) {
+        return state[kind === "event" ? "events" : `${kind}s`];
+      }
+      function validLink(item) {
+        if (!validEntry(item) || typeof item.url !== "string") return false;
+        try { return Boolean(safeUrl(item.url)); } catch (error) { return false; }
+      }
+      function save() {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(state));
+          render();
+          return true;
+        } catch (error) {
+          notify("Speichern fehlgeschlagen. Prüfe den verfügbaren Speicherplatz oder lade eine Sicherung herunter.");
+          return false;
+        }
+      }
+      function notify(message) {
+        toast.textContent = message;
+        toast.hidden = false;
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => { toast.hidden = true; }, 4200);
+      }
+      function el(tag, className, text) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined) node.textContent = text;
+        return node;
+      }
+      function control(action, kind, id, label, symbol) {
+        const button = el("button", "icon-button", symbol);
+        button.type = "button";
+        button.dataset.action = action;
+        button.dataset.kind = kind;
+        button.dataset.id = id;
+        button.setAttribute("aria-label", label);
+        button.title = label;
+        return button;
+      }
+      function emptyMessage(container, title, message) {
+        const box = el("div", "empty");
+        box.append(el("strong", "", title), el("span", "", message));
+        container.append(box);
+      }
+      function render() {
+        const now = new Date();
+        document.getElementById("today").textContent = new Intl.DateTimeFormat("de-DE", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(now);
+        const hour = now.getHours();
+        const greeting = hour < 11 ? "Guten Morgen" : hour < 18 ? "Guten Tag" : "Guten Abend";
+        document.getElementById("welcome").textContent = `${greeting}, ${state.profile.name}`;
+        document.getElementById("intro-copy").textContent = state.profile.intro;
+        const availableQuotes = motivationalQuotes.filter(quote => quote !== lastMotivationalQuote);
+        const quote = availableQuotes[Math.floor(Math.random() * availableQuotes.length)];
+        document.getElementById("motivation").textContent = quote;
+        lastMotivationalQuote = quote;
+        renderProgress();
+        renderLinks();
+        renderTasks();
+        renderNotes();
+        renderHabits();
+        renderCalendar();
+        applyWidgets();
+      }
+      function matchesSearch(...values) {
+        const query = searchInput.value.trim().toLocaleLowerCase("de");
+        return !query || values.some(value => String(value || "").toLocaleLowerCase("de").includes(query));
+      }
+      function showEmptyOrNoResults(container, kind) {
+        if (searchInput.value.trim()) emptyMessage(container, "Nichts gefunden.", "Passe deinen Suchbegriff an oder lösche ihn.");
+        else if (kind === "links") emptyMessage(container, "Hier ist Platz für deine Favoriten.", "Füge Links hinzu, die du oft brauchst.");
+        else if (kind === "tasks") emptyMessage(container, "Alles im grünen Bereich.", "Füge eine Aufgabe hinzu, um den Überblick zu behalten.");
+        else emptyMessage(container, "Deine Gedanken haben hier Platz.", "Schreibe eine Notiz und du findest sie beim nächsten Besuch wieder.");
+      }
+      function renderProgress() {
+        const total = state.tasks.length;
+        const done = state.tasks.filter(task => task.done).length;
+        const remaining = total - done;
+        document.getElementById("task-progress-text").textContent = total
+          ? `${done} von ${total} erledigt · ${remaining ? `${remaining} noch offen` : "Alles geschafft!"}`
+          : "Füge eine Aufgabe hinzu und starte durch.";
+        const track = document.getElementById("progress-track");
+        track.setAttribute("aria-valuemax", String(total));
+        track.setAttribute("aria-valuenow", String(done));
+        document.getElementById("progress-fill").style.width = `${total ? (done / total) * 100 : 0}%`;
+      }
+      function renderLinks() {
+        const container = document.getElementById("links-list");
+        container.replaceChildren();
+        const links = state.links.filter(item => matchesSearch(item.title, item.url));
+        if (!links.length) return showEmptyOrNoResults(container, "links");
+        links.forEach(item => {
+          const row = el("div", "entry");
+          const anchor = el("a", "entry-main");
+          anchor.href = item.url;
+          anchor.target = "_blank";
+          anchor.rel = "noopener noreferrer";
+          const icon = el("span", "site-dot", item.title.trim().charAt(0).toUpperCase() || "↗");
+          icon.setAttribute("aria-hidden", "true");
+          const text = el("span", "entry-text");
+          text.append(el("span", "entry-title", item.title), el("span", "entry-subtitle", item.url));
+          anchor.append(icon, text);
+          const controls = el("span", "entry-controls");
+          controls.append(control("edit", "link", item.id, `Link ${item.title} bearbeiten`, "✎"), control("delete", "link", item.id, `Link ${item.title} löschen`, "×"));
+          row.append(anchor, controls);
+          container.append(row);
+        });
+      }
+      function renderTasks() {
+        const container = document.getElementById("tasks-list");
+        container.replaceChildren();
+        const filter = document.getElementById("task-filter").value;
+        const tasks = state.tasks.filter(item => matchesSearch(item.title, item.dueDate) && (filter === "all" || (filter === "open" ? !item.done : item.done)))
+          .sort((a, b) => Number(a.done) - Number(b.done) || priorityRank(a.priority) - priorityRank(b.priority) || (a.dueDate || "9999").localeCompare(b.dueDate || "9999"));
+        if (!tasks.length) return showEmptyOrNoResults(container, "tasks");
+        tasks.forEach(item => {
+          const row = el("div", `entry${item.done ? " task-done" : ""}`);
+          const main = el("label", "entry-main");
+          const checkbox = el("input", "task-check");
+          checkbox.type = "checkbox";
+          checkbox.checked = item.done;
+          checkbox.dataset.action = "toggle-task";
+          checkbox.dataset.id = item.id;
+          checkbox.setAttribute("aria-label", `Aufgabe erledigt: ${item.title}`);
+          const text = el("span", "entry-text");
+          text.append(el("span", "entry-title", item.title));
+          if (item.dueDate || item.priority !== "normal") {
+            const meta = el("span", "task-meta");
+            if (item.priority !== "normal") {
+              const priorityName = item.priority === "high" ? "Hoch" : "Niedrig";
+              meta.append(el("span", `task-badge priority-${item.priority}`, `${item.priority === "high" ? "↑" : "↓"} ${priorityName}`));
+            }
+            if (item.dueDate) {
+              const overdue = !item.done && item.dueDate < localDateString();
+              const today = item.dueDate === localDateString();
+              const dateText = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "short" }).format(new Date(`${item.dueDate}T00:00:00`));
+              meta.append(el("span", `task-badge${overdue ? " is-overdue" : ""}`, `${overdue ? "Überfällig · " : today ? "Heute · " : ""}${dateText}`));
+            }
+            text.append(meta);
+          }
+          main.append(checkbox, text);
+          const controls = el("span", "entry-controls");
+          controls.append(control("edit", "task", item.id, `Aufgabe ${item.title} bearbeiten`, "✎"), control("delete", "task", item.id, `Aufgabe ${item.title} löschen`, "×"));
+          row.append(main, controls);
+          container.append(row);
+        });
+      }
+      function renderNotes() {
+        const container = document.getElementById("notes-list");
+        container.replaceChildren();
+        const notes = state.notes.filter(item => matchesSearch(item.title, item.detail)).sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)));
+        if (!notes.length) return showEmptyOrNoResults(container, "notes");
+        notes.forEach(item => {
+          const note = el("article", "note-card");
+          const top = el("div", "note-top");
+          const title = el("h3", "note-title", item.title);
+          const titleWrap = el("span", "note-title-wrap");
+          if (item.pinned) titleWrap.append(el("span", "note-pin", "★"));
+          titleWrap.append(title);
+          const controls = el("span", "note-controls");
+          controls.append(control("toggle-pin", "note", item.id, item.pinned ? `Notiz ${item.title} lösen` : `Notiz ${item.title} anheften`, item.pinned ? "★" : "☆"), control("edit", "note", item.id, `Notiz ${item.title} bearbeiten`, "✎"), control("delete", "note", item.id, `Notiz ${item.title} löschen`, "×"));
+          top.append(titleWrap, controls);
+          note.append(top, el("p", "note-body", item.detail || ""));
+          container.append(note);
+        });
+      }
+      function formatCalendarDate(value, options = { weekday: "long", day: "numeric", month: "long", year: "numeric" }) {
+        return new Intl.DateTimeFormat("de-DE", options).format(new Date(`${value}T12:00:00`));
+      }
+      function changeCalendarMonth(offset) {
+        displayedMonth = new Date(displayedMonth.getFullYear(), displayedMonth.getMonth() + offset, 1);
+        selectedDate = localDateString(displayedMonth);
+        renderCalendar();
+      }
+      function renderCalendar() {
+        const grid = document.getElementById("calendar-grid");
+        if (!grid) return;
+        grid.replaceChildren();
+        document.getElementById("calendar-month").textContent = new Intl.DateTimeFormat("de-DE", { month: "long", year: "numeric" }).format(displayedMonth);
+        ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].forEach(day => {
+          const heading = el("span", "calendar-weekday", day);
+          heading.setAttribute("role", "columnheader");
+          grid.append(heading);
+        });
+        const offset = (displayedMonth.getDay() + 6) % 7;
+        const firstDay = new Date(displayedMonth.getFullYear(), displayedMonth.getMonth(), 1 - offset);
+        const today = localDateString();
+        for (let index = 0; index < 42; index += 1) {
+          const date = new Date(firstDay.getFullYear(), firstDay.getMonth(), firstDay.getDate() + index);
+          const dateValue = localDateString(date);
+          const dateEvents = state.events.filter(item => item.date === dateValue);
+          const button = el("button", "calendar-day", String(date.getDate()));
+          button.type = "button";
+          button.dataset.date = dateValue;
+          button.setAttribute("role", "gridcell");
+          button.setAttribute("aria-pressed", String(dateValue === selectedDate));
+          button.setAttribute("aria-label", `${formatCalendarDate(dateValue)}${dateEvents.length ? `, ${dateEvents.length} ${dateEvents.length === 1 ? "Termin" : "Termine"}` : ""}`);
+          if (date.getMonth() !== displayedMonth.getMonth()) button.classList.add("outside-month");
+          if (dateValue === today) button.classList.add("today");
+          if (dateValue === selectedDate) button.classList.add("selected");
+          if (dateEvents.length) {
+            const dots = el("span", "calendar-dots");
+            dots.setAttribute("aria-hidden", "true");
+            for (let dot = 0; dot < Math.min(dateEvents.length, 3); dot += 1) dots.append(el("span", "calendar-dot"));
+            button.append(dots);
+          }
+          grid.append(button);
+        }
+        const searching = Boolean(searchInput.value.trim());
+        document.getElementById("calendar-agenda-title").textContent = searching ? "Suchergebnisse" : formatCalendarDate(selectedDate);
+        const eventList = document.getElementById("calendar-events");
+        eventList.replaceChildren();
+        const dayEvents = state.events.filter(item =>
+          searching ? matchesSearch(item.title, item.detail, item.date) : item.date === selectedDate
+        ).sort((a, b) => (searching ? a.date.localeCompare(b.date) : 0) || (a.time || "99:99").localeCompare(b.time || "99:99") || a.title.localeCompare(b.title, "de"));
+        if (!dayEvents.length) {
+          emptyMessage(eventList, searchInput.value.trim() ? "Nichts gefunden." : "Noch nichts geplant.", searchInput.value.trim() ? "Passe deinen Suchbegriff an oder lösche ihn." : "Für diesen Tag sind noch keine Termine eingetragen.");
+          return;
+        }
+        dayEvents.forEach(item => {
+          const row = el("div", "entry");
+          const main = el("div", "entry-main");
+          const time = el("span", "calendar-event-time", item.time || "Ganztägig");
+          const text = el("span", "entry-text");
+          text.append(el("span", "entry-title", item.title));
+          if (searching) text.append(el("span", "entry-subtitle", formatCalendarDate(item.date, { day: "numeric", month: "short", year: "numeric" })));
+          if (item.detail) text.append(el("span", "calendar-event-detail", item.detail));
+          main.append(time, text);
+          const controls = el("span", "entry-controls");
+          controls.append(control("edit", "event", item.id, `Termin ${item.title} bearbeiten`, "✎"), control("delete", "event", item.id, `Termin ${item.title} löschen`, "×"));
+          row.append(main, controls);
+          eventList.append(row);
+        });
+      }
+      function habitStreak(habit) {
+        const completed = new Set(habit.completedDates || []);
+        let cursor = new Date(`${localDateString()}T00:00:00Z`);
+        if (!completed.has(localDateString(cursor))) cursor.setUTCDate(cursor.getUTCDate() - 1);
+        let streak = 0;
+        while (completed.has(localDateString(cursor)) && streak < 400) {
+          streak += 1;
+          cursor.setUTCDate(cursor.getUTCDate() - 1);
+        }
+        return streak;
+      }
+      function renderHabits() {
+        const container = document.getElementById("habits-list");
+        container.replaceChildren();
+        const completedToday = state.habits.filter(habit => habit.completedDates.includes(localDateString())).length;
+        const summary = el("p", "habit-summary");
+        summary.append(document.createTextNode("Heute geschafft: "));
+        summary.append(el("strong", "", `${completedToday} / ${state.habits.length}`));
+        container.append(summary);
+        const habits = state.habits.filter(habit => matchesSearch(habit.title));
+        if (!habits.length) {
+          emptyMessage(container, searchInput.value.trim() ? "Nichts gefunden." : "Kleine Schritte zählen.", searchInput.value.trim() ? "Passe deinen Suchbegriff an oder lösche ihn." : "Füge eine Routine hinzu, die du regelmäßig üben möchtest.");
+          return;
+        }
+        habits.forEach(habit => {
+          const completed = habit.completedDates.includes(localDateString());
+          const row = el("div", `entry${completed ? " habit-done" : ""}`);
+          const main = el("label", "entry-main");
+          const checkbox = el("input", "habit-check");
+          checkbox.type = "checkbox";
+          checkbox.checked = completed;
+          checkbox.dataset.action = "toggle-habit";
+          checkbox.dataset.id = habit.id;
+          checkbox.setAttribute("aria-label", `${completed ? "Heute erledigt" : "Heute abhaken"}: ${habit.title}`);
+          const text = el("span", "entry-text");
+          text.append(el("span", "entry-title", habit.title));
+          const streak = habitStreak(habit);
+          if (streak) text.append(el("span", "habit-streak", `🔥 ${streak} ${streak === 1 ? "Tag" : "Tage"} in Folge`));
+          main.append(checkbox, text);
+          const controls = el("span", "entry-controls");
+          controls.append(control("edit", "habit", habit.id, `Routine ${habit.title} bearbeiten`, "✎"), control("delete", "habit", habit.id, `Routine ${habit.title} löschen`, "×"));
+          row.append(main, controls);
+          container.append(row);
+        });
+      }
+      function openEditor(kind, id) {
+        editing = { kind, id: id || null };
+        const existing = id && kind !== "profile" ? collectionFor(kind).find(item => item.id === id) : null;
+        const profile = kind === "profile";
+        document.getElementById("dialog-title").textContent = `${existing ? "Bearbeiten" : "Hinzufügen"}: ${labels[kind] || "Routine"}`;
+        const nameField = document.getElementById("name-field");
+        const detailField = document.getElementById("detail-field");
+        const urlField = document.getElementById("url-field");
+        const dueField = document.getElementById("due-field");
+        const priorityField = document.getElementById("priority-field");
+        const eventDateField = document.getElementById("event-date-field");
+        const eventTimeField = document.getElementById("event-time-field");
+        nameField.hidden = false;
+        detailField.hidden = profile || kind === "task" || kind === "link" || kind === "habit";
+        urlField.hidden = kind !== "link";
+        dueField.hidden = kind !== "task";
+        priorityField.hidden = kind !== "task";
+        eventDateField.hidden = kind !== "event";
+        eventTimeField.hidden = kind !== "event";
+        const nameLabel = nameField.querySelector("label");
+        const nameInput = document.getElementById("field-name");
+        const detailLabel = detailField.querySelector("label");
+        const detailInput = document.getElementById("field-detail");
+        const urlInput = document.getElementById("field-url");
+        if (profile) {
+          nameLabel.textContent = "Dein Name";
+          nameInput.value = state.profile.name === "Dein Name" ? "" : state.profile.name;
+          nameInput.placeholder = "Wie möchtest du begrüßt werden?";
+          detailField.hidden = false;
+          detailLabel.textContent = "Begrüßungstext";
+          detailInput.value = state.profile.intro;
+          detailInput.placeholder = "Ein paar Worte über deinen Bereich";
+        } else {
+          nameLabel.textContent = kind === "task" ? "Aufgabe" : kind === "note" ? "Titel" : kind === "habit" ? "Routine" : kind === "event" ? "Termin" : "Anzeigename";
+          nameInput.value = existing ? existing.title : "";
+          nameInput.placeholder = kind === "link" ? "z. B. Mein Kalender" : kind === "task" ? "Was möchtest du erledigen?" : kind === "habit" ? "z. B. Täglich spazieren gehen" : kind === "event" ? "z. B. Zahnarzt, Geburtstag" : "Worum geht es?";
+          detailInput.value = existing ? (existing.detail || "") : "";
+          detailLabel.textContent = kind === "event" ? "Details (optional)" : "Deine Notiz";
+          detailInput.placeholder = kind === "event" ? "Ort, Vorbereitung oder weitere Infos" : "Schreib deine Gedanken hier auf …";
+          if (kind === "event") detailField.hidden = false;
+          urlInput.value = existing ? existing.url : "";
+          document.getElementById("field-due").value = existing ? (existing.dueDate || "") : "";
+          document.getElementById("field-priority").value = existing ? (existing.priority || "normal") : "normal";
+          document.getElementById("field-event-date").value = existing ? existing.date : kind === "event" ? selectedDate : "";
+          document.getElementById("field-event-time").value = existing ? (existing.time || "") : "";
+        }
+        dialog.showModal();
+        nameInput.focus();
+      }
+      function safeUrl(value) {
+        const url = new URL(value);
+        return ["http:", "https:"].includes(url.protocol) ? url.href : null;
+      }
+      form.addEventListener("submit", event => {
+        event.preventDefault();
+        const kind = editing.kind;
+        const name = document.getElementById("field-name").value.trim();
+        const detail = document.getElementById("field-detail").value.trim();
+        if (kind === "profile") {
+          if (!name) return notify("Bitte gib einen Namen ein.");
+          state.profile = { name, intro: detail };
+        } else {
+          if (!name) return notify("Bitte fülle den Namen aus.");
+          const collection = collectionFor(kind);
+          const values = { title: name };
+          if (kind === "note") values.detail = detail;
+          if (kind === "task") {
+            const dueDate = document.getElementById("field-due").value;
+            if (dueDate && !validDate(dueDate)) return notify("Bitte wähle ein gültiges Fälligkeitsdatum.");
+            values.dueDate = dueDate;
+            values.priority = document.getElementById("field-priority").value;
+          }
+          if (kind === "link") {
+            let enteredUrl = document.getElementById("field-url").value.trim();
+            if (!/^https?:\/\//i.test(enteredUrl)) enteredUrl = `https://${enteredUrl}`;
+            try { values.url = safeUrl(enteredUrl); } catch (error) { values.url = null; }
+            if (!values.url) return notify("Bitte gib eine gültige Webadresse ein, zum Beispiel https://beispiel.de.");
+          }
+          if (kind === "event") {
+            const date = document.getElementById("field-event-date").value;
+            const time = document.getElementById("field-event-time").value;
+            if (!validDate(date)) return notify("Bitte wähle ein gültiges Datum für deinen Termin.");
+            if (time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) return notify("Bitte gib eine gültige Uhrzeit ein.");
+            values.date = date;
+            values.time = time;
+            values.detail = detail;
+          }
+          if (editing.id) {
+            const index = collection.findIndex(item => item.id === editing.id);
+            if (index !== -1) collection[index] = { ...collection[index], ...values };
+          } else {
+            collection.unshift({
+              id: crypto.randomUUID(),
+              ...values,
+              ...(kind === "task" ? { done: false } : {}),
+              ...(kind === "note" ? { pinned: false } : {}),
+              ...(kind === "habit" ? { completedDates: [] } : {})
+            });
+          }
+        }
+        if (save()) {
+          if (kind === "event") {
+            const savedEvent = state.events.find(item => item.id === editing.id) || state.events[0];
+            if (savedEvent) {
+              selectedDate = savedEvent.date;
+              const date = new Date(`${selectedDate}T12:00:00`);
+              displayedMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+              renderCalendar();
+            }
+          }
+          dialog.close();
+          notify("Gespeichert.");
+        }
+      });
+      document.addEventListener("click", event => {
+        const button = event.target.closest("[data-action]");
+        if (!button) return;
+        const { action, kind, id } = button.dataset;
+        if (action === "add") openEditor(kind);
+        if (action === "edit") openEditor(kind, id);
+        if (action === "edit-profile") openEditor("profile");
+        if (action === "close-dialog") dialog.close();
+        if (action === "close-widgets") widgetsDialog.close();
+        if (action === "delete") {
+          const collection = collectionFor(kind);
+          const index = collection.findIndex(item => item.id === id);
+          if (index === -1) return;
+          if (!confirm(`„${collection[index].title}“ wirklich löschen?`)) return;
+          const [removed] = collection.splice(index, 1);
+          if (save()) notify("Eintrag gelöscht.");
+          else {
+            collection.splice(index, 0, removed);
+            render();
+          }
+        }
+        if (action === "toggle-pin") {
+          const note = state.notes.find(item => item.id === id);
+          if (!note) return;
+          const previous = Boolean(note.pinned);
+          note.pinned = !previous;
+          if (save()) notify(note.pinned ? "Notiz angeheftet." : "Notiz gelöst.");
+          else note.pinned = previous;
+        }
+      });
+      searchInput.addEventListener("input", () => {
+        renderLinks();
+        renderTasks();
+        renderNotes();
+        renderHabits();
+        renderCalendar();
+      });
+      document.getElementById("calendar-prev").addEventListener("click", () => changeCalendarMonth(-1));
+      document.getElementById("calendar-next").addEventListener("click", () => changeCalendarMonth(1));
+      document.getElementById("calendar-today").addEventListener("click", () => {
+        const today = new Date();
+        displayedMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        selectedDate = localDateString(today);
+        renderCalendar();
+      });
+      document.getElementById("calendar-grid").addEventListener("click", event => {
+        const day = event.target.closest("[data-date]");
+        if (!day) return;
+        selectedDate = day.dataset.date;
+        const selected = new Date(`${selectedDate}T12:00:00`);
+        displayedMonth = new Date(selected.getFullYear(), selected.getMonth(), 1);
+        renderCalendar();
+      });
+      document.getElementById("task-filter").addEventListener("change", renderTasks);
+      document.getElementById("widgets-button").addEventListener("click", openWidgetsDialog);
+      document.getElementById("widgets-reset").addEventListener("click", () => {
+        widgetsForm.reset();
+        Object.keys(widgetDefaults).forEach(key => {
+          const checkbox = widgetsForm.elements.namedItem(key);
+          if (checkbox instanceof HTMLInputElement) checkbox.checked = true;
+        });
+      });
+      widgetsForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const next = Object.fromEntries(Object.keys(widgetDefaults).map(key => {
+          const checkbox = widgetsForm.elements.namedItem(key);
+          return [key, checkbox instanceof HTMLInputElement ? checkbox.checked : true];
+        }));
+        try {
+          localStorage.setItem(widgetsStorageKey, JSON.stringify(next));
+          Object.assign(widgets, next);
+          applyWidgets();
+          widgetsDialog.close();
+          notify("Dein Dashboard wurde angepasst.");
+        } catch (error) {
+          notify("Deine Widget-Auswahl konnte nicht gespeichert werden.");
+        }
+      });
+      themeToggle.addEventListener("click", () => {
+        const theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        applyTheme(theme);
+        try {
+          localStorage.setItem(themeStorageKey, theme);
+        } catch (error) {
+          notify("Das Farbschema wurde geändert, konnte aber nicht gespeichert werden.");
+        }
+      });
+      timerToggle.addEventListener("click", () => {
+        if (timer.running) {
+          timer.remainingSeconds = remainingTimerSeconds();
+          timer.running = false;
+          timer.endsAt = 0;
+        } else {
+          if (timer.remainingSeconds <= 0) timer.remainingSeconds = timer.duration * 60;
+          timer.running = true;
+          timer.endsAt = Date.now() + timer.remainingSeconds * 1000;
+        }
+        saveTimer();
+        startTimerTick();
+      });
+      document.getElementById("timer-reset").addEventListener("click", () => {
+        timer.running = false;
+        timer.endsAt = 0;
+        timer.remainingSeconds = timer.duration * 60;
+        saveTimer();
+        startTimerTick();
+      });
+      timerDuration.addEventListener("change", () => {
+        timer.duration = Number(timerDuration.value);
+        timer.running = false;
+        timer.endsAt = 0;
+        timer.remainingSeconds = timer.duration * 60;
+        saveTimer();
+        startTimerTick();
+      });
+      document.addEventListener("keydown", event => {
+        const target = event.target;
+        const typing = target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+        if (event.key === "/" && !typing && !dialog.open && !event.ctrlKey && !event.metaKey && !event.altKey) {
+          if (!widgets.search) return;
+          event.preventDefault();
+          searchInput.focus();
+        }
+        if (event.key.toLowerCase() === "k" && (event.ctrlKey || event.metaKey)) {
+          event.preventDefault();
+          if (widgets.overview) document.getElementById("quick-task-input").focus();
+          else openEditor("task");
+        }
+      });
+      document.getElementById("quick-task-form").addEventListener("submit", event => {
+        event.preventDefault();
+        const input = document.getElementById("quick-task-input");
+        const title = input.value.trim();
+        if (!title) return notify("Schreibe zuerst eine Aufgabe auf.");
+        const task = { id: crypto.randomUUID(), title, done: false };
+        state.tasks.unshift(task);
+        if (save()) {
+          input.value = "";
+          notify("Aufgabe hinzugefügt.");
+        } else {
+          state.tasks = state.tasks.filter(item => item.id !== task.id);
+        }
+      });
+      document.addEventListener("change", event => {
+        const input = event.target;
+        if (input.matches('[data-action="toggle-habit"]')) {
+          const habit = state.habits.find(item => item.id === input.dataset.id);
+          if (!habit) return;
+          const previous = [...habit.completedDates];
+          const today = localDateString();
+          habit.completedDates = input.checked
+            ? [...new Set([...habit.completedDates, today])].sort().slice(-400)
+            : habit.completedDates.filter(date => date !== today);
+          if (!save()) {
+            habit.completedDates = previous;
+            render();
+          }
+          return;
+        }
+        if (input.matches('[data-action="toggle-task"]')) {
+          const task = state.tasks.find(item => item.id === input.dataset.id);
+          if (task) {
+            const previous = task.done;
+            task.done = input.checked;
+            if (!save()) {
+              task.done = previous;
+              render();
+            }
+          }
+        }
+      });
+      document.getElementById("export-button").addEventListener("click", () => {
+        try {
+          const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const anchor = document.createElement("a");
+          anchor.href = url;
+          anchor.download = "mein-bereich-sicherung.json";
+          anchor.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          notify("Sicherung heruntergeladen.");
+        } catch (error) {
+          notify("Die Sicherung konnte nicht erstellt werden.");
+        }
+      });
+      const fileInput = document.getElementById("import-file");
+      document.getElementById("import-button").addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener("change", async () => {
+        const file = fileInput.files[0];
+        fileInput.value = "";
+        if (!file) return;
+        try {
+          const imported = JSON.parse(await file.text());
+          if (!imported || typeof imported !== "object" || !imported.profile || !Array.isArray(imported.links) || !Array.isArray(imported.tasks) || !Array.isArray(imported.notes) || (imported.habits !== undefined && !Array.isArray(imported.habits)) || (imported.events !== undefined && !Array.isArray(imported.events))) {
+            throw new Error("Ungültiges Sicherungsformat");
+          }
+          if (!imported.links.every(validLink) || !imported.tasks.every(validEntry) || !imported.notes.every(validEntry) || (imported.habits || []).some(item => !validEntry(item) || (item.completedDates !== undefined && (!Array.isArray(item.completedDates) || !item.completedDates.every(validDate)))) || (imported.events || []).some(item => !validEvent(item))) {
+            throw new Error("Einträge in der Sicherung sind ungültig");
+          }
+          if (!confirm(`Diese Sicherung ersetzt deine aktuellen Einträge (${state.links.length} Links, ${state.tasks.length} Aufgaben, ${state.notes.length} Notizen, ${state.habits.length} Routinen und ${state.events.length} Termine). Fortfahren?`)) return;
+          const previous = {
+            profile: state.profile,
+            links: state.links,
+            tasks: state.tasks,
+            notes: state.notes,
+            habits: state.habits,
+            events: state.events
+          };
+          state.profile = {
+            name: String(imported.profile.name || defaults.profile.name),
+            intro: String(imported.profile.intro || "")
+          };
+          state.links = imported.links.map(item => ({ ...item, url: safeUrl(item.url) }));
+          state.tasks = imported.tasks.map(item => ({
+            ...item,
+            done: Boolean(item.done),
+            priority: ["high", "normal", "low"].includes(item.priority) ? item.priority : "normal",
+            dueDate: validDate(item.dueDate) ? item.dueDate : ""
+          }));
+          state.notes = imported.notes.map(item => ({ ...item, pinned: Boolean(item.pinned) }));
+          state.habits = (imported.habits || []).map(item => ({
+            ...item,
+            completedDates: [...new Set((item.completedDates || []).filter(validDate))].sort().slice(-400)
+          }));
+          state.events = (imported.events || []).filter(validEvent).map(item => ({ ...item, time: item.time || "", detail: item.detail || "" }));
+          if (save()) notify("Sicherung erfolgreich geladen.");
+          else {
+            state.profile = previous.profile;
+            state.links = previous.links;
+            state.tasks = previous.tasks;
+            state.notes = previous.notes;
+            state.habits = previous.habits;
+            state.events = previous.events;
+          }
+        } catch (error) {
+          notify("Diese Datei konnte nicht als Sicherung geladen werden. Bitte wähle eine gültige JSON-Sicherung.");
+        }
+      });
+      loadTheme();
+      render();
+      updateTimer();
+      if (timer.justCompleted) {
+        saveTimer();
+        setTimeout(() => notify("Deine Fokusrunde ist abgelaufen. Zeit für eine kurze Pause!"), 0);
+      }
+      startTimerTick();
+    })();
+  </script>
+</body>
+</html>
