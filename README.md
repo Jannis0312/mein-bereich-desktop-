@@ -11,7 +11,7 @@
    npm start
    ```
 
-Das Dashboard wird in einem eigenen Fenster geöffnet. Änderungen an Aufgaben, Links, Notizen, Routinen, Terminen, deiner Film- und Serien-Watchlist, Ausgaben und deinem Profil speichert die App automatisch auf diesem Gerät.
+Das Dashboard wird in einem eigenen Fenster geöffnet. Änderungen an Aufgaben, Links, Notizen, Routinen, Terminen, deiner Film- und Serien-Watchlist, Spielen, Ausgaben und deinem Profil speichert die App automatisch auf diesem Gerät.
 Der Desktop-App-Speicher ist getrennt vom Browser. Über „Sicherung“ kannst du Browser-Daten exportieren und anschließend in der Desktop-App importieren.
 
 ## Cloud-Synchronisierung einrichten
@@ -29,6 +29,8 @@ Die Daten werden lokal sofort gespeichert und eine Sekunde nach einer Änderung 
 In der Watchlist kannst du Filme und Serien eintragen, optional den Streamingdienst notieren, ihren Status auf „Auf der Liste“, „Schaue ich“ oder „Gesehen“ setzen und über das Filmroulette zufällig einen noch offenen Titel auswählen.
 
 Der Ausgaben-Tracker speichert Beträge in Euro mit Datum, Notiz und festen Kategorien. Er zeigt Monatsgesamtsummen und eine Aufschlüsselung nach Kategorien; du kannst Monate ansehen und die Liste nach Kategorie filtern. Ausgaben werden wie die übrigen Daten lokal gespeichert, mit der Cloud synchronisiert und in Sicherungen aufgenommen.
+
+Im Spiele-Backlog kannst du Spiele mit Plattform, Status und optionaler Notiz festhalten. Filtere nach „Als Nächstes“, „Spiele ich“ oder „Durchgespielt“ und lass dir zufällig ein Spiel aus deiner „Als Nächstes“-Liste auswählen. Deine Spiele werden lokal gespeichert, mit deinem Cloud-Konto synchronisiert und in Sicherungen einbezogen.
 
 Nur der öffentliche Supabase-Client-Key gehört in `cloud-config.js`; **niemals** dort einen `service_role`-Key eintragen oder veröffentlichen. Der SQL-Aufbau aktiviert Row Level Security und beschränkt Datenbankzugriffe auf das jeweilige angemeldete Konto. Das Cloud-Konto ist vom GitHub-Konto für App-Releases getrennt.
 

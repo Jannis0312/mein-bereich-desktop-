@@ -210,6 +210,16 @@
     .expense-pill { display: inline-flex; width: fit-content; padding: 3px 7px; border-radius: 99px; background: var(--badge-surface); color: var(--muted); font-size: 10px; }
     .expense-filter { min-height: 34px; max-width: 145px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--muted); font-size: 10px; }
     :root[data-theme="dark"] .expense-filter { border-color: var(--line); background: #1d211d; color: var(--ink); }
+    .game-entry .entry-text { flex: 1; }
+    .game-filter { min-height: 34px; max-width: 145px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--muted); font-size: 10px; }
+    .game-status-select { max-width: 135px; min-height: 32px; padding: 0 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--muted); font-size: 10px; }
+    .game-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+    .game-pill { display: inline-flex; width: fit-content; padding: 3px 7px; border-radius: 99px; background: var(--badge-surface); color: var(--muted); font-size: 10px; }
+    .game-result { margin-bottom: 14px; padding: 13px 14px; border: 1px solid #dfe5d9; border-radius: 11px; background: var(--green-pale); color: var(--ink); font-size: 12px; line-height: 1.5; }
+    .game-result[hidden] { display: none; }
+    .game-result strong { display: block; margin-top: 3px; font-size: 15px; }
+    :root[data-theme="dark"] .game-filter, :root[data-theme="dark"] .game-status-select { border-color: var(--line); background: #1d211d; color: var(--ink); }
+    :root[data-theme="dark"] .game-result { border-color: #354434; }
     .empty { padding: 20px 8px 18px; color: var(--muted); font-size: 12px; line-height: 1.6; text-align: center; }
     .empty strong { display: block; margin-bottom: 4px; color: var(--ink); font-weight: 650; }
     .privacy { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; color: var(--muted); font-size: 11px; line-height: 1.55; }
@@ -425,6 +435,25 @@
             <div id="expenses-list"></div>
           </div>
         </section>
+        <section class="panel" data-widget="games" aria-labelledby="games-heading">
+          <div class="panel-head">
+            <h2 class="panel-title" id="games-heading"><span class="title-icon" aria-hidden="true">🎮</span>Spiele-Backlog</h2>
+            <button class="add-button" type="button" id="game-add">＋ Spiel</button>
+          </div>
+          <div class="panel-content">
+            <div class="watch-toolbar">
+              <select class="game-filter" id="game-filter" aria-label="Spiele nach Status filtern">
+                <option value="all">Alle Spiele</option>
+                <option value="queued">Als Nächstes</option>
+                <option value="playing">Spiele ich</option>
+                <option value="completed">Durchgespielt</option>
+              </select>
+              <button class="primary-button" type="button" id="game-random">🎲 Spiel auswählen</button>
+            </div>
+            <div class="game-result" id="game-result" role="status" aria-live="polite" hidden></div>
+            <div id="games-list"></div>
+          </div>
+        </section>
         <aside class="privacy">
           <span class="privacy-icon" aria-hidden="true">●</span>
           <span>Deine Einträge werden automatisch auf diesem Gerät gespeichert. Verbinde ein Cloud-Konto, um sie zusätzlich geräteübergreifend zu synchronisieren; „Sicherung“ erstellt weiterhin eine herunterladbare Kopie.</span>
@@ -471,6 +500,7 @@
         <label class="widget-option"><input type="checkbox" name="calendar"><span class="widget-option-text"><strong>Mein Kalender</strong><small>Termine planen und kommende Tage ansehen</small></span></label>
         <label class="widget-option"><input type="checkbox" name="watchlist"><span class="widget-option-text"><strong>Film- &amp; Serien-Watchlist</strong><small>Merkliste und zufällige Auswahl per Roulette</small></span></label>
         <label class="widget-option"><input type="checkbox" name="expenses"><span class="widget-option-text"><strong>Ausgaben</strong><small>Monatssummen und Ausgaben nach Kategorie</small></span></label>
+        <label class="widget-option"><input type="checkbox" name="games"><span class="widget-option-text"><strong>Spiele-Backlog</strong><small>Spiele, Plattformen und zufällige Auswahl</small></span></label>
       </div>
       <div class="dialog-actions">
         <button class="quiet-button widget-reset" type="button" id="widgets-reset">Alle einblenden</button>
@@ -588,6 +618,38 @@
       </div>
     </form>
   </dialog>
+  <dialog id="game-editor" aria-labelledby="game-editor-title">
+    <div class="dialog-head">
+      <h2 id="game-editor-title">Spiel zum Backlog hinzufügen</h2>
+      <button class="icon-button" type="button" data-action="close-game-editor" aria-label="Dialog schließen">×</button>
+    </div>
+    <form class="dialog-form" id="game-editor-form">
+      <div class="field">
+        <label for="game-title">Spielname</label>
+        <input id="game-title" maxlength="100" autocomplete="off" required>
+      </div>
+      <div class="field">
+        <label for="game-platform">Plattform (optional)</label>
+        <input id="game-platform" maxlength="80" autocomplete="off" placeholder="z. B. PC, PlayStation oder Switch">
+      </div>
+      <div class="field">
+        <label for="game-status-input">Status</label>
+        <select id="game-status-input">
+          <option value="queued">Als Nächstes</option>
+          <option value="playing">Spiele ich</option>
+          <option value="completed">Durchgespielt</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="game-detail">Notiz (optional)</label>
+        <textarea id="game-detail" maxlength="500" placeholder="Zum Beispiel: Mit Freunden spielen"></textarea>
+      </div>
+      <div class="dialog-actions">
+        <button class="quiet-button" type="button" data-action="close-game-editor">Abbrechen</button>
+        <button class="primary-button" type="submit">Speichern</button>
+      </div>
+    </form>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="./cloud-config.js"></script>
@@ -599,7 +661,7 @@
       const widgetsStorageKey = "mein-bereich-widgets-v1";
       const cloudSessionStorageKey = "mein-bereich-cloud-session-v1";
       const cloudConfig = window.MEIN_BEREICH_CLOUD || {};
-      const widgetDefaults = { overview: true, timer: true, search: true, links: true, tasks: true, notes: true, habits: true, calendar: true, watchlist: true, expenses: true };
+      const widgetDefaults = { overview: true, timer: true, search: true, links: true, tasks: true, notes: true, habits: true, calendar: true, watchlist: true, expenses: true, games: true };
       const defaults = {
         profile: { name: "Dein Name", intro: "Ein Ort für deine Ideen, Links und den Alltag. Füge hinzu, was dir wichtig ist." },
         links: [],
@@ -608,10 +670,12 @@
         habits: [],
         events: [],
         watchlist: [],
-        expenses: []
+        expenses: [],
+        games: []
       };
       const labels = { profile: "Begrüßung", link: "Link", task: "Aufgabe", note: "Notiz", habit: "Routine", event: "Termin" };
       const watchStatuses = { planned: "Auf der Liste", watching: "Schaue ich", watched: "Gesehen" };
+      const gameStatuses = { queued: "Als Nächstes", playing: "Spiele ich", completed: "Durchgespielt" };
       const expenseCategories = {
         food: "Essen & Trinken",
         housing: "Wohnen",
@@ -643,6 +707,8 @@
       const watchEditorForm = document.getElementById("watch-editor-form");
       const expenseEditor = document.getElementById("expense-editor");
       const expenseEditorForm = document.getElementById("expense-editor-form");
+      const gameEditor = document.getElementById("game-editor");
+      const gameEditorForm = document.getElementById("game-editor-form");
       const toast = document.getElementById("toast");
       const searchInput = document.getElementById("search-input");
       const widgetsDialog = document.getElementById("widgets-dialog");
@@ -663,6 +729,7 @@
       let editing = { kind: null, id: null };
       let editingWatchId = null;
       let editingExpenseId = null;
+      let editingGameId = null;
       let toastTimer;
       let timerInterval;
       let cloudSession = loadCloudSession();
@@ -846,6 +913,12 @@
             ...item,
             category: Object.hasOwn(expenseCategories, item.category) ? item.category : "other",
             detail: typeof item.detail === "string" ? item.detail : ""
+          })) : [],
+          games: Array.isArray(parsed.games) ? parsed.games.filter(validGame).map(item => ({
+            ...item,
+            status: gameStatuses[item.status] ? item.status : "queued",
+            platform: typeof item.platform === "string" ? item.platform : "",
+            detail: typeof item.detail === "string" ? item.detail : ""
           })) : []
         };
       }
@@ -871,6 +944,12 @@
           validDate(item.date) &&
           (item.detail === undefined || (typeof item.detail === "string" && item.detail.length <= 300));
       }
+      function validGame(item) {
+        return validEntry(item) &&
+          (item.status === undefined || Object.hasOwn(gameStatuses, item.status)) &&
+          (item.platform === undefined || (typeof item.platform === "string" && item.platform.length <= 80)) &&
+          (item.detail === undefined || (typeof item.detail === "string" && item.detail.length <= 500));
+      }
       function validDate(value) {
         if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
         const [year, month, day] = value.split("-").map(Number);
@@ -887,7 +966,7 @@
         return priority === "high" ? 0 : priority === "low" ? 2 : 1;
       }
       function collectionFor(kind) {
-        return kind === "event" ? state.events : kind === "watch" ? state.watchlist : kind === "expense" ? state.expenses : state[`${kind}s`];
+        return kind === "event" ? state.events : kind === "watch" ? state.watchlist : kind === "expense" ? state.expenses : kind === "game" ? state.games : state[`${kind}s`];
       }
       function validLink(item) {
         if (!validEntry(item) || typeof item.url !== "string") return false;
@@ -1090,6 +1169,9 @@
         state.notes = normalized.notes;
         state.habits = normalized.habits;
         state.events = normalized.events;
+        state.watchlist = normalized.watchlist;
+        state.expenses = normalized.expenses;
+        state.games = normalized.games;
       }
       function scheduleCloudSave() {
         cloudDirty = true;
@@ -1273,6 +1355,7 @@
         renderCalendar();
         renderWatchlist();
         renderExpenses();
+        renderGames();
         applyWidgets();
       }
       function matchesSearch(...values) {
@@ -1634,6 +1717,60 @@
         expenseEditor.showModal();
         document.getElementById("expense-title").focus();
       }
+      function renderGames() {
+        const container = document.getElementById("games-list");
+        container.replaceChildren();
+        const filter = document.getElementById("game-filter").value;
+        const items = state.games.filter(item =>
+          matchesSearch(item.title, item.platform, item.detail, gameStatuses[item.status]) &&
+          (filter === "all" || item.status === filter)
+        );
+        if (!items.length) {
+          if (searchInput.value.trim()) emptyMessage(container, "Nichts gefunden.", "Passe deinen Suchbegriff an oder lösche ihn.");
+          else if (filter !== "all") emptyMessage(container, "Keine passenden Spiele.", "Wähle einen anderen Statusfilter.");
+          else emptyMessage(container, "Deine Spiele warten hier.", "Füge Spiele hinzu und behalte im Blick, was du als Nächstes spielen möchtest.");
+          return;
+        }
+        items.forEach(item => {
+          const row = el("div", "entry game-entry");
+          const text = el("span", "entry-text");
+          text.append(el("span", "entry-title", item.title));
+          const meta = el("span", "game-meta");
+          if (item.platform) meta.append(el("span", "game-pill", item.platform));
+          meta.append(el("span", "game-pill", gameStatuses[item.status]));
+          if (item.detail) meta.append(el("span", "entry-subtitle", item.detail));
+          text.append(meta);
+          const status = document.createElement("select");
+          status.className = "game-status-select";
+          status.setAttribute("aria-label", `Status für ${item.title}`);
+          Object.entries(gameStatuses).forEach(([value, label]) => {
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = label;
+            status.append(option);
+          });
+          status.value = item.status;
+          status.dataset.action = "game-status";
+          status.dataset.id = item.id;
+          const controls = el("span", "entry-controls");
+          controls.append(control("game-edit", "game", item.id, `${item.title} bearbeiten`, "✎"));
+          controls.append(control("game-delete", "game", item.id, `${item.title} löschen`, "×"));
+          row.append(text, status, controls);
+          container.append(row);
+        });
+      }
+      function openGameEditor(id) {
+        const existing = id ? state.games.find(item => item.id === id) : null;
+        if (id && !existing) return;
+        editingGameId = existing ? existing.id : null;
+        document.getElementById("game-editor-title").textContent = existing ? "Spiel bearbeiten" : "Spiel zum Backlog hinzufügen";
+        document.getElementById("game-title").value = existing?.title || "";
+        document.getElementById("game-platform").value = existing?.platform || "";
+        document.getElementById("game-status-input").value = existing?.status || "queued";
+        document.getElementById("game-detail").value = existing?.detail || "";
+        gameEditor.showModal();
+        document.getElementById("game-title").focus();
+      }
       function openEditor(kind, id) {
         editing = { kind, id: id || null };
         const existing = id && kind !== "profile" ? collectionFor(kind).find(item => item.id === id) : null;
@@ -1806,6 +1943,29 @@
           state.expenses = state.expenses.filter(entry => entry.id !== item.id);
         }
       });
+      gameEditorForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const title = document.getElementById("game-title").value.trim();
+        const platform = document.getElementById("game-platform").value.trim();
+        const status = document.getElementById("game-status-input").value;
+        const detail = document.getElementById("game-detail").value.trim();
+        if (!title) return notify("Bitte gib einen Spielnamen ein.");
+        if (!Object.hasOwn(gameStatuses, status)) return notify("Bitte wähle einen gültigen Spielstatus.");
+        const values = { title, platform, status, detail };
+        const index = state.games.findIndex(item => item.id === editingGameId);
+        const previous = index === -1 ? null : state.games[index];
+        const item = { ...(previous || {}), ...(previous ? {} : { id: crypto.randomUUID() }), ...values };
+        if (index === -1) state.games.unshift(item);
+        else state.games[index] = item;
+        if (save()) {
+          gameEditor.close();
+          notify(previous ? "Spiel aktualisiert." : "Spiel hinzugefügt.");
+        } else if (previous) {
+          state.games[index] = previous;
+        } else {
+          state.games = state.games.filter(entry => entry.id !== item.id);
+        }
+      });
       document.addEventListener("click", event => {
         const button = event.target.closest("[data-action]");
         if (!button) return;
@@ -1817,6 +1977,7 @@
         if (action === "close-widgets") widgetsDialog.close();
         if (action === "close-watch-editor") watchEditor.close();
         if (action === "close-expense-editor") expenseEditor.close();
+        if (action === "close-game-editor") gameEditor.close();
         if (action === "watch-edit") openWatchEditor(id);
         if (action === "watch-delete") {
           const index = state.watchlist.findIndex(item => item.id === id);
@@ -1838,6 +1999,18 @@
           if (save()) notify("Ausgabe gelöscht.");
           else {
             state.expenses.splice(index, 0, removed);
+            render();
+          }
+        }
+        if (action === "game-edit") openGameEditor(id);
+        if (action === "game-delete") {
+          const index = state.games.findIndex(item => item.id === id);
+          if (index === -1) return;
+          if (!confirm(`„${state.games[index].title}“ wirklich aus dem Spiele-Backlog löschen?`)) return;
+          const [removed] = state.games.splice(index, 1);
+          if (save()) notify("Spiel gelöscht.");
+          else {
+            state.games.splice(index, 0, removed);
             render();
           }
         }
@@ -1870,6 +2043,7 @@
         renderCalendar();
         renderWatchlist();
         renderExpenses();
+        renderGames();
       });
       document.getElementById("expense-add").addEventListener("click", () => openExpenseEditor());
       document.getElementById("expense-prev").addEventListener("click", () => changeExpenseMonth(-1));
@@ -1880,6 +2054,39 @@
         renderExpenses();
       });
       document.getElementById("expense-category-filter").addEventListener("change", renderExpenses);
+      document.getElementById("game-add").addEventListener("click", () => openGameEditor());
+      document.getElementById("game-filter").addEventListener("change", renderGames);
+      document.getElementById("game-random").addEventListener("click", () => {
+        const candidates = state.games.filter(item => item.status === "queued" && matchesSearch(item.title, item.platform, item.detail));
+        const result = document.getElementById("game-result");
+        if (!candidates.length) {
+          result.hidden = false;
+          result.replaceChildren(document.createTextNode("Füge zuerst ein Spiel mit dem Status „Als Nächstes“ hinzu."));
+          return;
+        }
+        const choice = candidates[Math.floor(Math.random() * candidates.length)];
+        result.replaceChildren(
+          document.createTextNode("Dein nächstes Spiel könnte sein:"),
+          el("strong", "", choice.title),
+          ...(choice.platform ? [el("span", "", choice.platform)] : [])
+        );
+        result.hidden = false;
+      });
+      document.getElementById("game-result").hidden = true;
+      document.addEventListener("change", event => {
+        const input = event.target;
+        if (input.matches('[data-action="game-status"]')) {
+          const item = state.games.find(entry => entry.id === input.dataset.id);
+          if (!item || !Object.hasOwn(gameStatuses, input.value)) return;
+          const previous = item.status;
+          item.status = input.value;
+          if (!save()) {
+            item.status = previous;
+            render();
+          }
+          return;
+        }
+      });
       initializeExpenseCategories();
       document.getElementById("watch-add").addEventListener("click", () => openWatchEditor());
       document.getElementById("watch-filter").addEventListener("change", renderWatchlist);
@@ -2065,13 +2272,13 @@
         if (!file) return;
         try {
           const imported = JSON.parse(await file.text());
-          if (!imported || typeof imported !== "object" || !imported.profile || !Array.isArray(imported.links) || !Array.isArray(imported.tasks) || !Array.isArray(imported.notes) || (imported.habits !== undefined && !Array.isArray(imported.habits)) || (imported.events !== undefined && !Array.isArray(imported.events)) || (imported.watchlist !== undefined && !Array.isArray(imported.watchlist)) || (imported.expenses !== undefined && !Array.isArray(imported.expenses))) {
+          if (!imported || typeof imported !== "object" || !imported.profile || !Array.isArray(imported.links) || !Array.isArray(imported.tasks) || !Array.isArray(imported.notes) || (imported.habits !== undefined && !Array.isArray(imported.habits)) || (imported.events !== undefined && !Array.isArray(imported.events)) || (imported.watchlist !== undefined && !Array.isArray(imported.watchlist)) || (imported.expenses !== undefined && !Array.isArray(imported.expenses)) || (imported.games !== undefined && !Array.isArray(imported.games))) {
             throw new Error("Ungültiges Sicherungsformat");
           }
-          if (!imported.links.every(validLink) || !imported.tasks.every(validEntry) || !imported.notes.every(validEntry) || (imported.habits || []).some(item => !validEntry(item) || (item.completedDates !== undefined && (!Array.isArray(item.completedDates) || !item.completedDates.every(validDate)))) || (imported.events || []).some(item => !validEvent(item)) || (imported.watchlist || []).some(item => !validWatchItem(item)) || (imported.expenses || []).some(item => !validExpense(item))) {
+          if (!imported.links.every(validLink) || !imported.tasks.every(validEntry) || !imported.notes.every(validEntry) || (imported.habits || []).some(item => !validEntry(item) || (item.completedDates !== undefined && (!Array.isArray(item.completedDates) || !item.completedDates.every(validDate)))) || (imported.events || []).some(item => !validEvent(item)) || (imported.watchlist || []).some(item => !validWatchItem(item)) || (imported.expenses || []).some(item => !validExpense(item)) || (imported.games || []).some(item => !validGame(item))) {
             throw new Error("Einträge in der Sicherung sind ungültig");
           }
-          if (!confirm(`Diese Sicherung ersetzt deine aktuellen Einträge (${state.links.length} Links, ${state.tasks.length} Aufgaben, ${state.notes.length} Notizen, ${state.habits.length} Routinen, ${state.events.length} Termine, ${state.watchlist.length} Watchlist-Titel und ${state.expenses.length} Ausgaben). Fortfahren?`)) return;
+          if (!confirm(`Diese Sicherung ersetzt deine aktuellen Einträge (${state.links.length} Links, ${state.tasks.length} Aufgaben, ${state.notes.length} Notizen, ${state.habits.length} Routinen, ${state.events.length} Termine, ${state.watchlist.length} Watchlist-Titel, ${state.expenses.length} Ausgaben und ${state.games.length} Spiele). Fortfahren?`)) return;
           const previous = {
             profile: state.profile,
             links: state.links,
@@ -2080,7 +2287,8 @@
             habits: state.habits,
             events: state.events,
             watchlist: state.watchlist,
-            expenses: state.expenses
+            expenses: state.expenses,
+            games: state.games
           };
           state.profile = {
             name: String(imported.profile.name || defaults.profile.name),
@@ -2111,6 +2319,12 @@
             category: Object.hasOwn(expenseCategories, item.category) ? item.category : "other",
             detail: typeof item.detail === "string" ? item.detail : ""
           }));
+          state.games = (imported.games || []).filter(validGame).map(item => ({
+            ...item,
+            status: gameStatuses[item.status] ? item.status : "queued",
+            platform: typeof item.platform === "string" ? item.platform : "",
+            detail: typeof item.detail === "string" ? item.detail : ""
+          }));
           if (save()) notify("Sicherung erfolgreich geladen.");
           else {
             state.profile = previous.profile;
@@ -2121,6 +2335,7 @@
             state.events = previous.events;
             state.watchlist = previous.watchlist;
             state.expenses = previous.expenses;
+            state.games = previous.games;
           }
         } catch (error) {
           notify("Diese Datei konnte nicht als Sicherung geladen werden. Bitte wähle eine gültige JSON-Sicherung.");
