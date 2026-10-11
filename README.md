@@ -37,4 +37,4 @@ git push origin main --follow-tags
 
 Der Release-Workflow erstellt anschließend automatisch den Windows-Installer und die Update-Metadaten. Bei einer neuen Funktion müssen die geänderten Dateien zuerst wie gewohnt committet und gepusht werden; danach wird mit `npm version patch` die Update-Version erstellt.
 
-Die erste automatische Aktualisierung funktioniert erst, nachdem die Version `1.0.1` mit integriertem Updater einmal installiert wurde.
+Die erste automatische Aktualisierung funktioniert erst, nachdem die Version `1.0.2` mit integriertem Updater einmal installiert wurde.

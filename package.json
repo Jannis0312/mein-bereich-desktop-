@@ -1,13 +1,12 @@
 {
   "name": "mein-bereich",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "description": "Persönliches Dashboard als Windows-Desktop-App",
   "main": "desktop.cjs",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win nsis",
-    "publish": "electron-builder --win nsis --publish always"
+    "dist": "electron-builder --win nsis"
   },
   "devDependencies": {
     "electron": "^44.7.0",
@@ -33,6 +32,7 @@
       "releaseType": "release"
     },
     "nsis": {
+      "artifactName": "Mein-Bereich-Setup-${version}.${ext}",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     }
