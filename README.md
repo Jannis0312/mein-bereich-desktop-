@@ -11,8 +11,22 @@
    npm start
    ```
 
-Das Dashboard wird in einem eigenen Fenster geöffnet. Deine Daten werden weiterhin lokal im App-Browser gespeichert.
-Der Desktop-App-Speicher ist getrennt vom Browser. Über „Sicherung“ kannst du die bisherigen Browser-Daten exportieren und anschließend in der Desktop-App importieren.
+Das Dashboard wird in einem eigenen Fenster geöffnet. Änderungen an Aufgaben, Links, Notizen, Routinen, Terminen und deinem Profil speichert die App automatisch auf diesem Gerät.
+Der Desktop-App-Speicher ist getrennt vom Browser. Über „Sicherung“ kannst du Browser-Daten exportieren und anschließend in der Desktop-App importieren.
+
+## Cloud-Synchronisierung einrichten
+
+Die Cloud-Synchronisierung ist optional. Ohne Cloud-Einrichtung bleiben deine Daten lokal und werden weiterhin automatisch gespeichert.
+
+1. Erstelle ein Projekt bei [Supabase](https://supabase.com/dashboard).
+2. Öffne **Project Settings → API**. Kopiere die **Project URL** und den öffentlichen **Publishable key** (oder den bisherigen **anon key**) in `cloud-config.js`.
+3. Führe den gesamten Inhalt von `supabase-setup.sql` einmal im Supabase **SQL Editor** aus.
+4. Aktiviere in den Supabase-Authentifizierungseinstellungen die Anmeldung per E-Mail. Wenn E-Mail-Bestätigung aktiviert ist, bestätige die Nachricht nach der Kontoerstellung.
+5. Installiere die App mit diesen Cloud-Dateien auf deinen Geräten. In der App wählst du **Cloud → Konto erstellen** oder meldest dich mit demselben Konto an.
+
+Die Daten werden lokal sofort gespeichert und eine Sekunde nach einer Änderung zur Cloud hochgeladen. Die App fragt die Cloud zusätzlich alle 30 Sekunden ab, solange sie geöffnet ist. Beim ersten Verbinden eines Geräts mit vorhandenen Inhalten wirst du gefragt, welche Version übernommen werden soll.
+
+Nur der öffentliche Supabase-Client-Key gehört in `cloud-config.js`; **niemals** dort einen `service_role`-Key eintragen oder veröffentlichen. Der SQL-Aufbau aktiviert Row Level Security und beschränkt Datenbankzugriffe auf das jeweilige angemeldete Konto. Das Cloud-Konto ist vom GitHub-Konto für App-Releases getrennt.
 
 ## Windows-Installationsdatei erstellen
 
@@ -37,4 +51,4 @@ git push origin main --follow-tags
 
 Der Release-Workflow erstellt anschließend automatisch den Windows-Installer und die Update-Metadaten. Bei einer neuen Funktion müssen die geänderten Dateien zuerst wie gewohnt committet und gepusht werden; danach wird mit `npm version patch` die Update-Version erstellt.
 
-Die erste automatische Aktualisierung funktioniert erst, nachdem die Version `1.0.3` mit integriertem Updater einmal installiert wurde.
+Die erste automatische Aktualisierung funktioniert erst, nachdem eine App-Version mit integriertem Updater einmal installiert wurde.

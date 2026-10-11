@@ -239,6 +239,7 @@
     <div class="top-actions">
       <button class="quiet-button" type="button" id="export-button" title="Sicherung herunterladen"><span aria-hidden="true">↓</span> Sicherung</button>
       <button class="quiet-button" type="button" id="import-button" title="Sicherung wiederherstellen"><span aria-hidden="true">↑</span> Laden</button>
+      <button class="quiet-button" type="button" id="cloud-button" title="Cloud-Synchronisierung"><span aria-hidden="true">⇅</span> <span id="cloud-button-label">Cloud</span></button>
       <button class="quiet-button" type="button" id="theme-toggle" aria-pressed="false" title="Farbschema wechseln"><span aria-hidden="true">◐</span> <span id="theme-label">Dunkelmodus</span></button>
       <button class="quiet-button" type="button" id="widgets-button" title="Angezeigte Bereiche auswählen"><span aria-hidden="true">▦</span> <span>Widgets</span></button>
       <button class="quiet-button" type="button" data-action="edit-profile" title="Begrüßung bearbeiten"><span aria-hidden="true">⚙</span> Anpassen</button>
@@ -356,7 +357,7 @@
         </section>
         <aside class="privacy">
           <span class="privacy-icon" aria-hidden="true">●</span>
-          <span>Deine Einträge bleiben in diesem Browser auf diesem Gerät. Sie sind nicht passwortgeschützt und werden nicht zwischen Geräten synchronisiert. Lade über „Sicherung“ regelmäßig eine Kopie herunter.</span>
+          <span>Deine Einträge werden automatisch auf diesem Gerät gespeichert. Verbinde ein Cloud-Konto, um sie zusätzlich geräteübergreifend zu synchronisieren; „Sicherung“ erstellt weiterhin eine herunterladbare Kopie.</span>
         </aside>
       </div>
     </section>
@@ -406,14 +407,55 @@
       </div>
     </form>
   </dialog>
+  <dialog id="cloud-dialog" aria-labelledby="cloud-title">
+    <div class="dialog-head">
+      <h2 id="cloud-title">Cloud-Synchronisierung</h2>
+      <button class="icon-button" type="button" data-action="close-cloud" aria-label="Dialog schließen">×</button>
+    </div>
+    <div class="dialog-form">
+      <p class="intro-copy">Deine Daten bleiben automatisch auf diesem Gerät gespeichert. Melde dich zusätzlich an, um sie sicher in deinem Cloud-Konto zu sichern und auf deinen anderen Geräten zu laden.</p>
+      <p class="intro-copy" id="cloud-status" role="status" aria-live="polite"></p>
+      <div id="cloud-conflict" hidden>
+        <p class="intro-copy">Auf diesem Gerät sind bereits Inhalte gespeichert. Sollen die Cloud-Daten dieses Gerät ersetzen oder sollen die Inhalte dieses Geräts die Cloud-Daten ersetzen?</p>
+        <div class="dialog-actions" style="margin-top:12px">
+          <button class="quiet-button" id="cloud-use-remote" type="button">Cloud übernehmen</button>
+          <button class="primary-button" id="cloud-use-local" type="button">Dieses Gerät hochladen</button>
+        </div>
+      </div>
+      <form id="cloud-auth-form">
+        <div class="field" id="cloud-email-field">
+          <label for="cloud-email">E-Mail</label>
+          <input id="cloud-email" name="email" type="email" maxlength="254" autocomplete="email" required>
+        </div>
+        <div class="field" id="cloud-password-field" style="margin-top:12px">
+          <label for="cloud-password">Passwort (mindestens 8 Zeichen)</label>
+          <input id="cloud-password" name="password" type="password" minlength="8" maxlength="128" autocomplete="current-password" required>
+        </div>
+        <div class="dialog-actions" id="cloud-auth-actions" style="margin-top:16px">
+          <button class="quiet-button" id="cloud-signup" type="button">Konto erstellen</button>
+          <button class="primary-button" type="submit">Anmelden</button>
+        </div>
+      </form>
+      <div id="cloud-account" hidden>
+        <p class="intro-copy">Angemeldet als <strong id="cloud-account-email"></strong></p>
+        <div class="dialog-actions" style="margin-top:16px">
+          <button class="quiet-button" id="cloud-logout" type="button">Abmelden</button>
+        </div>
+      </div>
+      <p class="intro-copy" id="cloud-config-help" hidden>Cloud ist noch nicht eingerichtet. Trage deine Supabase-Projekt-URL und deinen öffentlichen Publishable/Anon-Key in <code>cloud-config.js</code> ein und führe das SQL aus <code>supabase-setup.sql</code> im Supabase SQL-Editor aus.</p>
+    </div>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
+  <script src="./cloud-config.js"></script>
   <script>
     (() => {
       const storageKey = "mein-bereich-v1";
       const timerStorageKey = "mein-bereich-timer-v1";
       const themeStorageKey = "mein-bereich-theme-v1";
       const widgetsStorageKey = "mein-bereich-widgets-v1";
+      const cloudSessionStorageKey = "mein-bereich-cloud-session-v1";
+      const cloudConfig = window.MEIN_BEREICH_CLOUD || {};
       const widgetDefaults = { overview: true, timer: true, search: true, links: true, tasks: true, notes: true, habits: true, calendar: true };
       const defaults = {
         profile: { name: "Dein Name", intro: "Ein Ort für deine Ideen, Links und den Alltag. Füge hinzu, was dir wichtig ist." },
@@ -448,9 +490,28 @@
       const timerToggle = document.getElementById("timer-toggle");
       const timerFace = document.getElementById("timer-face");
       const themeToggle = document.getElementById("theme-toggle");
+      const cloudDialog = document.getElementById("cloud-dialog");
+      const cloudStatusElement = document.getElementById("cloud-status");
+      const cloudAccountElement = document.getElementById("cloud-account");
+      const cloudAuthForm = document.getElementById("cloud-auth-form");
+      const cloudLoginFields = [
+        document.getElementById("cloud-email-field"),
+        document.getElementById("cloud-password-field"),
+        document.getElementById("cloud-auth-actions")
+      ];
       let editing = { kind: null, id: null };
       let toastTimer;
       let timerInterval;
+      let cloudSession = loadCloudSession();
+      let cloudUpdatedAt = "";
+      let localStateUpdatedAt = "";
+      let resolveCloudConflict;
+      loadCloudSyncState();
+      let cloudSaveTimer;
+      let cloudPollTimer;
+      let cloudSyncInProgress = false;
+      let cloudDirty = false;
+      let cloudLastError = "";
 
       function loadWidgets() {
         try {
@@ -579,24 +640,38 @@
         try {
           const saved = localStorage.getItem(storageKey);
           if (!saved) return structuredClone(defaults);
-          const parsed = JSON.parse(saved);
-          if (!parsed || typeof parsed !== "object" || !parsed.profile || !Array.isArray(parsed.links) || !Array.isArray(parsed.tasks) || !Array.isArray(parsed.notes)) throw new Error("Ungültige gespeicherte Daten");
-          const habits = Array.isArray(parsed.habits) ? parsed.habits : [];
-          return {
-            profile: { name: String(parsed.profile.name || defaults.profile.name), intro: String(parsed.profile.intro || "") },
-            links: parsed.links.filter(validLink),
-            tasks: parsed.tasks.filter(validEntry).map(item => ({ ...item, done: Boolean(item.done), priority: ["high", "normal", "low"].includes(item.priority) ? item.priority : "normal", dueDate: validDate(item.dueDate) ? item.dueDate : "" })),
-            notes: parsed.notes.filter(validEntry).map(item => ({ ...item, pinned: Boolean(item.pinned) })),
-            habits: habits.filter(validEntry).map(item => ({
-              ...item,
-              completedDates: Array.isArray(item.completedDates) ? [...new Set(item.completedDates.filter(validDate))].slice(-400) : []
-            })),
-            events: Array.isArray(parsed.events) ? parsed.events.filter(validEvent) : []
-          };
+          return normalizeState(JSON.parse(saved));
         } catch (error) {
           setTimeout(() => notify("Gespeicherte Inhalte konnten nicht geladen werden. Du kannst eine Sicherung importieren."), 0);
           return structuredClone(defaults);
         }
+      }
+      function normalizeState(parsed) {
+        if (!parsed || typeof parsed !== "object" || !parsed.profile ||
+            !Array.isArray(parsed.links) || !Array.isArray(parsed.tasks) || !Array.isArray(parsed.notes)) {
+          throw new Error("Ungültige Dashboard-Daten");
+        }
+        const habits = Array.isArray(parsed.habits) ? parsed.habits : [];
+        return {
+          profile: { name: String(parsed.profile.name || defaults.profile.name), intro: String(parsed.profile.intro || "") },
+          links: parsed.links.filter(validLink),
+          tasks: parsed.tasks.filter(validEntry).map(item => ({
+            ...item,
+            done: Boolean(item.done),
+            priority: ["high", "normal", "low"].includes(item.priority) ? item.priority : "normal",
+            dueDate: validDate(item.dueDate) ? item.dueDate : ""
+          })),
+          notes: parsed.notes.filter(validEntry).map(item => ({ ...item, pinned: Boolean(item.pinned) })),
+          habits: habits.filter(validEntry).map(item => ({
+            ...item,
+            completedDates: Array.isArray(item.completedDates) ? [...new Set(item.completedDates.filter(validDate))].slice(-400) : []
+          })),
+          events: Array.isArray(parsed.events) ? parsed.events.filter(validEvent).map(item => ({
+            ...item,
+            time: item.time || "",
+            detail: item.detail || ""
+          })) : []
+        };
       }
       function validEntry(item) {
         return item && typeof item.id === "string" && typeof item.title === "string";
@@ -628,14 +703,338 @@
         if (!validEntry(item) || typeof item.url !== "string") return false;
         try { return Boolean(safeUrl(item.url)); } catch (error) { return false; }
       }
-      function save() {
+      function save(options = {}) {
         try {
           localStorage.setItem(storageKey, JSON.stringify(state));
           render();
+          if (cloudSession && options.sync !== false) {
+            localStateUpdatedAt = new Date().toISOString();
+            saveCloudSyncState();
+            scheduleCloudSave();
+          }
           return true;
         } catch (error) {
           notify("Speichern fehlgeschlagen. Prüfe den verfügbaren Speicherplatz oder lade eine Sicherung herunter.");
           return false;
+        }
+      }
+      function cloudConfigured() {
+        return typeof cloudConfig.url === "string" && /^https:\/\/[a-z\d-]+\.supabase\.co$/i.test(cloudConfig.url) &&
+          typeof cloudConfig.anonKey === "string" && cloudConfig.anonKey.length > 0;
+      }
+      function loadCloudSession() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(cloudSessionStorageKey));
+          if (saved && typeof saved.accessToken === "string" && typeof saved.refreshToken === "string" &&
+              typeof saved.expiresAt === "number" && typeof saved.email === "string" &&
+              typeof saved.userId === "string") {
+            return saved;
+          }
+        } catch (error) {
+          console.error("Gespeicherte Cloud-Anmeldung konnte nicht gelesen werden:", error);
+        }
+        return null;
+      }
+      function saveCloudSession(session) {
+        localStorage.setItem(cloudSessionStorageKey, JSON.stringify(session));
+        cloudSession = session;
+        loadCloudSyncState();
+        updateCloudUi();
+      }
+      function loadCloudSyncState() {
+        cloudUpdatedAt = "";
+        localStateUpdatedAt = "";
+        if (!cloudSession) return;
+        try {
+          const saved = JSON.parse(localStorage.getItem("mein-bereich-cloud-sync-v1"));
+          if (saved && saved.userId === cloudSession.userId) {
+            cloudUpdatedAt = typeof saved.cloudUpdatedAt === "string" ? saved.cloudUpdatedAt : "";
+            localStateUpdatedAt = typeof saved.localStateUpdatedAt === "string" ? saved.localStateUpdatedAt : "";
+          }
+        } catch (error) {
+          console.error("Cloud-Synchronisierungsstatus konnte nicht geladen werden:", error);
+        }
+      }
+      function saveCloudSyncState() {
+        if (!cloudSession) return;
+        localStorage.setItem("mein-bereich-cloud-sync-v1", JSON.stringify({
+          userId: cloudSession.userId,
+          cloudUpdatedAt,
+          localStateUpdatedAt
+        }));
+      }
+      async function cloudRequest(endpoint, options = {}, authenticated = Boolean(cloudSession)) {
+        if (!cloudConfigured()) throw new Error("Die Cloud ist noch nicht eingerichtet.");
+        const headers = new Headers(options.headers || {});
+        headers.set("apikey", cloudConfig.anonKey);
+        if (authenticated && cloudSession) headers.set("Authorization", `Bearer ${cloudSession.accessToken}`);
+        if (options.body !== undefined) headers.set("Content-Type", "application/json");
+        const response = await fetch(`${cloudConfig.url}/rest/v1/${endpoint}`, { ...options, headers });
+        if (!response.ok) {
+          const message = (await response.text()).slice(0, 500);
+          throw new Error(`Cloud-Anfrage fehlgeschlagen (${response.status}): ${message || response.statusText}`);
+        }
+        return response.status === 204 ? null : response.json();
+      }
+      async function refreshCloudSession() {
+        if (!cloudSession) return false;
+        if (cloudSession.expiresAt > Date.now() + 60_000) return true;
+        const response = await fetch(`${cloudConfig.url}/auth/v1/token?grant_type=refresh_token`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", apikey: cloudConfig.anonKey },
+          body: JSON.stringify({ refresh_token: cloudSession.refreshToken })
+        });
+        if (!response.ok) {
+          const message = (await response.text()).slice(0, 500);
+          throw new Error(`Die Cloud-Anmeldung konnte nicht erneuert werden (${response.status}): ${message}`);
+        }
+        const data = await response.json();
+        if (typeof data.access_token !== "string" || typeof data.refresh_token !== "string") {
+          throw new Error("Der Cloud-Dienst lieferte keine gültige erneuerte Anmeldung.");
+        }
+        saveCloudSession({
+          accessToken: data.access_token,
+          refreshToken: data.refresh_token,
+          expiresAt: Date.now() + Number(data.expires_in || 3600) * 1000,
+          email: data.user?.email || cloudSession.email,
+          userId: data.user?.id || cloudSession.userId
+        });
+        return true;
+      }
+      function setCloudStatus(message) {
+        cloudStatusElement.textContent = message;
+      }
+      function updateCloudUi() {
+        const configured = cloudConfigured();
+        const button = document.getElementById("cloud-button");
+        document.getElementById("cloud-button-label").textContent = cloudLastError && configured
+          ? "Cloud-Fehler"
+          : cloudSession && configured ? "Synchronisiert" : "Cloud";
+        button.title = cloudSession && configured
+          ? `Cloud-Synchronisierung aktiv: ${cloudSession.email}`
+          : "Cloud-Synchronisierung";
+        document.getElementById("cloud-config-help").hidden = configured;
+        cloudAccountElement.hidden = !configured || !cloudSession;
+        cloudAuthForm.hidden = !configured || Boolean(cloudSession);
+        document.getElementById("cloud-account-email").textContent = cloudSession?.email || "";
+        if (!configured) setCloudStatus("Nur die automatische Speicherung auf diesem Gerät ist aktiv.");
+        else if (cloudSession) setCloudStatus("Angemeldet. Änderungen werden automatisch geräteübergreifend synchronisiert.");
+        else setCloudStatus("Melde dich an oder erstelle ein Konto, um die Cloud-Synchronisierung zu aktivieren.");
+      }
+      function chooseCloudSource() {
+        document.getElementById("cloud-conflict").hidden = false;
+        if (!cloudDialog.open) cloudDialog.showModal();
+        return new Promise(resolve => {
+          resolveCloudConflict = resolve;
+        });
+      }
+      function finishCloudConflict(choice) {
+        const resolve = resolveCloudConflict;
+        resolveCloudConflict = null;
+        document.getElementById("cloud-conflict").hidden = true;
+        if (cloudDialog.open) cloudDialog.close();
+        if (resolve) resolve(choice);
+      }
+      async function syncCloud(options = {}) {
+        if (!cloudSession || !cloudConfigured() || cloudSyncInProgress) return;
+        cloudSyncInProgress = true;
+        const { quiet = false } = options;
+        try {
+          await refreshCloudSession();
+          const rows = await cloudRequest(
+            `dashboard_data?select=data,updated_at&user_id=eq.${encodeURIComponent(cloudSession.userId)}`,
+            { method: "GET" }
+          );
+          const remote = Array.isArray(rows) ? rows[0] : null;
+          if (cloudDirty) {
+            await persistCloudState();
+          } else if (remote) {
+            if (!remote.data || typeof remote.data !== "object" || typeof remote.updated_at !== "string") {
+              throw new Error("Die Cloud lieferte ungültige gespeicherte Dashboard-Daten.");
+            }
+            const remoteTime = Date.parse(remote.updated_at);
+            if (!Number.isFinite(remoteTime)) throw new Error("Der Cloud-Speicher enthält einen ungültigen Zeitstempel.");
+            const localTime = Date.parse(localStateUpdatedAt);
+            if (!localStateUpdatedAt && JSON.stringify(state) !== JSON.stringify(defaults)) {
+              const choice = await chooseCloudSource();
+              if (!choice) return;
+              if (choice === "cloud") {
+                replaceState(remote.data);
+                cloudUpdatedAt = remote.updated_at;
+                localStateUpdatedAt = remote.updated_at;
+                saveCloudSyncState();
+                if (!save({ sync: false })) throw new Error("Die Cloud-Daten konnten nicht lokal gespeichert werden.");
+              } else {
+                await persistCloudState();
+              }
+            } else if (Number.isFinite(remoteTime) && remoteTime > (Number.isFinite(localTime) ? localTime : 0)) {
+              replaceState(remote.data);
+              cloudUpdatedAt = remote.updated_at;
+              localStateUpdatedAt = remote.updated_at;
+              saveCloudSyncState();
+              if (!save({ sync: false })) throw new Error("Die aktuellen Cloud-Daten konnten nicht lokal gespeichert werden.");
+            } else if (Number.isFinite(localTime) && localTime > remoteTime) {
+              await persistCloudState();
+            }
+          } else {
+            await persistCloudState();
+          }
+          cloudLastError = "";
+          updateCloudUi();
+          if (!quiet) notify("Cloud-Synchronisierung abgeschlossen.");
+        } catch (error) {
+          console.error("Cloud-Synchronisierung fehlgeschlagen:", error);
+          cloudLastError = error.message;
+          updateCloudUi();
+          setCloudStatus(`Cloud-Synchronisierung fehlgeschlagen: ${error.message}`);
+          if (!quiet) notify(`Cloud-Synchronisierung fehlgeschlagen: ${error.message}`);
+        } finally {
+          cloudSyncInProgress = false;
+        }
+      }
+      function replaceState(value) {
+        const normalized = normalizeState(value);
+        state.profile = normalized.profile;
+        state.links = normalized.links;
+        state.tasks = normalized.tasks;
+        state.notes = normalized.notes;
+        state.habits = normalized.habits;
+        state.events = normalized.events;
+      }
+      function scheduleCloudSave() {
+        cloudDirty = true;
+        clearTimeout(cloudSaveTimer);
+        cloudSaveTimer = setTimeout(() => {
+          syncCloud({ quiet: true });
+        }, 1000);
+      }
+      async function persistCloudState() {
+        const savedLocalTimestamp = localStateUpdatedAt;
+        const savedData = JSON.stringify(state);
+        const result = await cloudRequest("dashboard_data?on_conflict=user_id", {
+          method: "POST",
+          headers: {
+            Prefer: "return=representation,resolution=merge-duplicates"
+          },
+          body: JSON.stringify({ user_id: cloudSession.userId, data: JSON.parse(savedData), updated_at: new Date().toISOString() })
+        });
+        if (!Array.isArray(result) || !result[0]?.updated_at) {
+          throw new Error("Die Cloud hat die Änderungen nicht bestätigt.");
+        }
+        cloudUpdatedAt = result[0].updated_at;
+        if (localStateUpdatedAt === savedLocalTimestamp) localStateUpdatedAt = cloudUpdatedAt;
+        saveCloudSyncState();
+        cloudDirty = localStateUpdatedAt !== cloudUpdatedAt;
+      }
+      async function authenticateCloud(endpoint, body) {
+        if (!cloudConfigured()) throw new Error("Bitte richte zuerst die Cloud-Zugangsdaten in cloud-config.js ein.");
+        const response = await fetch(`${cloudConfig.url}/auth/v1/${endpoint}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", apikey: cloudConfig.anonKey },
+          body: JSON.stringify(body)
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.msg || data.message || data.error_description || data.error || "Cloud-Anmeldung fehlgeschlagen.");
+        if (typeof data.access_token !== "string" || typeof data.refresh_token !== "string" || !data.user) {
+          throw new Error("Der Cloud-Dienst lieferte keine gültige Anmeldung.");
+        }
+        saveCloudSession({
+          accessToken: data.access_token,
+          refreshToken: data.refresh_token,
+          expiresAt: Date.now() + Number(data.expires_in || 3600) * 1000,
+          email: data.user.email || body.email,
+          userId: data.user.id
+        });
+        cloudDirty = false;
+        await syncCloud();
+      }
+      function setCloudBusy(isBusy) {
+        cloudLoginFields.forEach(element => {
+          element.querySelectorAll("button, input").forEach(control => {
+            control.disabled = isBusy;
+          });
+        });
+        document.getElementById("cloud-logout").disabled = isBusy;
+      }
+      function setupCloudSync() {
+        const cloudButton = document.getElementById("cloud-button");
+        cloudButton.addEventListener("click", () => cloudDialog.showModal());
+        document.addEventListener("click", event => {
+          if (event.target.closest('[data-action="close-cloud"]')) cloudDialog.close();
+        });
+        document.getElementById("cloud-use-remote").addEventListener("click", () => finishCloudConflict("cloud"));
+        document.getElementById("cloud-use-local").addEventListener("click", () => finishCloudConflict("local"));
+        cloudDialog.addEventListener("close", () => {
+          if (resolveCloudConflict) finishCloudConflict(null);
+        });
+        cloudAuthForm.addEventListener("submit", async event => {
+          event.preventDefault();
+          setCloudBusy(true);
+          try {
+            await authenticateCloud("token?grant_type=password", {
+              email: document.getElementById("cloud-email").value.trim(),
+              password: document.getElementById("cloud-password").value
+            });
+            document.getElementById("cloud-password").value = "";
+          } catch (error) {
+            console.error("Cloud-Anmeldung fehlgeschlagen:", error);
+            setCloudStatus(error.message);
+          } finally {
+            setCloudBusy(false);
+          }
+        });
+        document.getElementById("cloud-signup").addEventListener("click", async () => {
+          const email = document.getElementById("cloud-email").value.trim();
+          const password = document.getElementById("cloud-password").value;
+          if (!cloudAuthForm.reportValidity()) return;
+          setCloudBusy(true);
+          try {
+            const response = await fetch(`${cloudConfig.url}/auth/v1/signup`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", apikey: cloudConfig.anonKey },
+              body: JSON.stringify({ email, password })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.msg || data.message || data.error_description || "Das Konto konnte nicht erstellt werden.");
+            if (data.access_token && data.refresh_token && data.user) {
+              saveCloudSession({
+                accessToken: data.access_token,
+                refreshToken: data.refresh_token,
+                expiresAt: Date.now() + Number(data.expires_in || 3600) * 1000,
+                email: data.user.email || email,
+                userId: data.user.id
+              });
+              document.getElementById("cloud-password").value = "";
+              await syncCloud();
+            } else {
+              document.getElementById("cloud-password").value = "";
+              setCloudStatus("Konto erstellt. Bestätige deine E-Mail und melde dich danach hier an.");
+            }
+          } catch (error) {
+            console.error("Cloud-Konto konnte nicht erstellt werden:", error);
+            setCloudStatus(error.message);
+          } finally {
+            setCloudBusy(false);
+          }
+        });
+        document.getElementById("cloud-logout").addEventListener("click", async () => {
+          localStorage.removeItem(cloudSessionStorageKey);
+          localStorage.removeItem("mein-bereich-cloud-sync-v1");
+          cloudSession = null;
+          cloudUpdatedAt = "";
+          localStateUpdatedAt = "";
+          cloudLastError = "";
+          clearInterval(cloudPollTimer);
+          clearTimeout(cloudSaveTimer);
+          cloudDirty = false;
+          updateCloudUi();
+        });
+        updateCloudUi();
+        if (cloudSession && cloudConfigured()) {
+          syncCloud({ quiet: true });
+          cloudPollTimer = setInterval(() => {
+            if (!cloudSyncInProgress) syncCloud({ quiet: true });
+          }, 30_000);
         }
       }
       function notify(message) {
@@ -1251,6 +1650,7 @@
           notify("Diese Datei konnte nicht als Sicherung geladen werden. Bitte wähle eine gültige JSON-Sicherung.");
         }
       });
+      setupCloudSync();
       loadTheme();
       render();
       updateTimer();
