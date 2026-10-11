@@ -503,6 +503,10 @@
         </select>
       </div>
       <div class="field">
+        <label for="watch-service">Streamingdienst (optional)</label>
+        <input id="watch-service" maxlength="80" autocomplete="off" placeholder="z. B. Netflix, Disney+ oder Kino">
+      </div>
+      <div class="field">
         <label for="watch-detail">Notiz (optional)</label>
         <textarea id="watch-detail" maxlength="500" placeholder="Zum Beispiel: Staffel 2 weiterschauen"></textarea>
       </div>
@@ -747,6 +751,7 @@
             ...item,
             type: item.type === "series" ? "series" : "film",
             status: watchStatuses[item.status] ? item.status : "planned",
+            service: typeof item.service === "string" ? item.service : "",
             detail: typeof item.detail === "string" ? item.detail : ""
           })) : []
         };
@@ -763,6 +768,7 @@
         return validEntry(item) &&
           (item.type === undefined || item.type === "film" || item.type === "series") &&
           (item.status === undefined || Object.hasOwn(watchStatuses, item.status)) &&
+          (item.service === undefined || (typeof item.service === "string" && item.service.length <= 80)) &&
           (item.detail === undefined || typeof item.detail === "string");
       }
       function validDate(value) {
@@ -1388,7 +1394,7 @@
         container.replaceChildren();
         const filter = document.getElementById("watch-filter").value;
         const items = state.watchlist.filter(item =>
-          matchesSearch(item.title, item.detail, item.type === "series" ? "Serie" : "Film", watchStatuses[item.status]) &&
+          matchesSearch(item.title, item.detail, item.service, item.type === "series" ? "Serie" : "Film", watchStatuses[item.status]) &&
           (filter === "all" || item.status === filter)
         );
         if (!items.length) {
@@ -1406,6 +1412,7 @@
             el("span", "watch-type", item.type === "series" ? "Serie" : "Film"),
             el("span", "watch-status", watchStatuses[item.status])
           );
+          if (item.service) meta.append(el("span", "watch-type", item.service));
           if (item.detail) meta.append(el("span", "entry-subtitle", item.detail));
           text.append(meta);
           const status = document.createElement("select");
@@ -1435,6 +1442,7 @@
         document.getElementById("watch-title").value = existing?.title || "";
         document.getElementById("watch-type").value = existing?.type || "film";
         document.getElementById("watch-status-input").value = existing?.status || "planned";
+        document.getElementById("watch-service").value = existing?.service || "";
         document.getElementById("watch-detail").value = existing?.detail || "";
         watchEditor.showModal();
         document.getElementById("watch-title").focus();
@@ -1561,6 +1569,7 @@
           title,
           type: document.getElementById("watch-type").value,
           status: document.getElementById("watch-status-input").value,
+          service: document.getElementById("watch-service").value.trim(),
           detail: document.getElementById("watch-detail").value.trim()
         };
         const index = state.watchlist.findIndex(item => item.id === editingWatchId);
@@ -1631,7 +1640,7 @@
       document.getElementById("watch-add").addEventListener("click", () => openWatchEditor());
       document.getElementById("watch-filter").addEventListener("change", renderWatchlist);
       document.getElementById("watch-roulette").addEventListener("click", () => {
-        const candidates = state.watchlist.filter(item => item.status === "planned" && matchesSearch(item.title, item.detail, item.type === "series" ? "Serie" : "Film"));
+        const candidates = state.watchlist.filter(item => item.status === "planned" && matchesSearch(item.title, item.detail, item.service, item.type === "series" ? "Serie" : "Film"));
         const result = document.getElementById("watch-result");
         if (!candidates.length) {
           result.hidden = false;
@@ -1849,6 +1858,7 @@
             ...item,
             type: item.type === "series" ? "series" : "film",
             status: watchStatuses[item.status] ? item.status : "planned",
+            service: typeof item.service === "string" ? item.service : "",
             detail: typeof item.detail === "string" ? item.detail : ""
           }));
           if (save()) notify("Sicherung erfolgreich geladen.");
