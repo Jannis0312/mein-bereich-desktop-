@@ -234,6 +234,8 @@
     .weather-day-label { color: var(--muted); font-size: 9px; }
     .weather-day-icon { margin: 5px 0; font-size: 15px; }
     .weather-day-temperatures { font-size: 9px; line-height: 1.5; }
+    .weather-attribution { display: inline-block; margin-top: 10px; color: var(--muted); font-size: 9px; }
+    .weather-attribution a { color: inherit; }
     :root[data-theme="dark"] .weather-search input { border-color: var(--line); background: #1d211d; color: var(--ink); }
     :root[data-theme="dark"] .weather-current { border: 1px solid #354434; }
     .empty { padding: 20px 8px 18px; color: var(--muted); font-size: 12px; line-height: 1.6; text-align: center; }
@@ -484,6 +486,7 @@
             <div id="weather-current" hidden></div>
             <div class="weather-details" id="weather-details" hidden></div>
             <div class="weather-forecast" id="weather-forecast" hidden></div>
+            <a class="weather-attribution" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Wetterdaten von Open-Meteo</a>
           </div>
         </section>
         <aside class="privacy">
