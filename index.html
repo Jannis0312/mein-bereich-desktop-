@@ -196,6 +196,20 @@
     .watch-result strong { display: block; margin-top: 3px; font-size: 15px; }
     :root[data-theme="dark"] .watch-result { border-color: #354434; }
     :root[data-theme="dark"] .watch-filter, :root[data-theme="dark"] .watch-status-select { border-color: var(--line); background: #1d211d; color: var(--ink); }
+    .expense-overview { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; margin: 12px 0; padding: 14px; border-radius: 11px; background: var(--green-pale); }
+    .expense-overview-label { color: var(--muted); font-size: 11px; }
+    .expense-overview-total { margin-top: 3px; color: var(--ink); font-size: 22px; font-weight: 750; letter-spacing: -.04em; }
+    .expense-breakdown { display: grid; gap: 8px; margin-bottom: 10px; }
+    .expense-category-row { display: grid; grid-template-columns: minmax(80px, 1fr) minmax(45px, 1fr) auto; align-items: center; gap: 9px; color: var(--muted); font-size: 10px; }
+    .expense-category-track { height: 5px; overflow: hidden; border-radius: 99px; background: var(--soft-surface); }
+    .expense-category-fill { height: 100%; border-radius: inherit; background: var(--green); }
+    .expense-category-total { min-width: 70px; color: var(--ink); font-variant-numeric: tabular-nums; text-align: right; }
+    .expense-entry .entry-text { flex: 1; }
+    .expense-amount { white-space: nowrap; font-variant-numeric: tabular-nums; font-size: 12px; font-weight: 700; }
+    .expense-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+    .expense-pill { display: inline-flex; width: fit-content; padding: 3px 7px; border-radius: 99px; background: var(--badge-surface); color: var(--muted); font-size: 10px; }
+    .expense-filter { min-height: 34px; max-width: 145px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--muted); font-size: 10px; }
+    :root[data-theme="dark"] .expense-filter { border-color: var(--line); background: #1d211d; color: var(--ink); }
     .empty { padding: 20px 8px 18px; color: var(--muted); font-size: 12px; line-height: 1.6; text-align: center; }
     .empty strong { display: block; margin-bottom: 4px; color: var(--ink); font-weight: 650; }
     .privacy { display: flex; align-items: flex-start; gap: 10px; margin-top: 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; color: var(--muted); font-size: 11px; line-height: 1.55; }
@@ -303,7 +317,7 @@
     </section>
     <p class="shortcut-hint">Tastenkürzel: <kbd>/</kbd> Suche · <kbd>Strg</kbd> + <kbd>K</kbd> neue Aufgabe</p>
     <div class="search-wrap" data-widget="search">
-      <input class="search-input" id="search-input" type="search" aria-label="Einträge durchsuchen" placeholder="Links, Aufgaben, Notizen, Termine und Watchlist durchsuchen …">
+      <input class="search-input" id="search-input" type="search" aria-label="Einträge durchsuchen" placeholder="Links, Aufgaben, Notizen, Termine, Watchlist und Ausgaben durchsuchen …">
     </div>
 
     <section class="layout" aria-label="Deine persönlichen Inhalte">
@@ -386,6 +400,31 @@
             <div id="watchlist-list"></div>
           </div>
         </section>
+        <section class="panel" data-widget="expenses" aria-labelledby="expenses-heading">
+          <div class="panel-head">
+            <h2 class="panel-title" id="expenses-heading"><span class="title-icon" aria-hidden="true">€</span>Ausgaben</h2>
+            <button class="add-button" type="button" id="expense-add">＋ Ausgabe</button>
+          </div>
+          <div class="panel-content">
+            <div class="calendar-toolbar">
+              <button class="icon-button" type="button" id="expense-prev" aria-label="Vorheriger Monat">‹</button>
+              <span class="calendar-month" id="expense-month"></span>
+              <button class="icon-button" type="button" id="expense-next" aria-label="Nächster Monat">›</button>
+              <button class="quiet-button" type="button" id="expense-current-month" style="min-height:30px;padding:0 8px;font-size:10px">Dieser Monat</button>
+            </div>
+            <div class="expense-overview">
+              <div>
+                <div class="expense-overview-label">Ausgaben in diesem Monat</div>
+                <div class="expense-overview-total" id="expense-total">0,00 €</div>
+              </div>
+              <select class="expense-filter" id="expense-category-filter" aria-label="Ausgaben nach Kategorie filtern">
+                <option value="all">Alle Kategorien</option>
+              </select>
+            </div>
+            <div class="expense-breakdown" id="expense-breakdown"></div>
+            <div id="expenses-list"></div>
+          </div>
+        </section>
         <aside class="privacy">
           <span class="privacy-icon" aria-hidden="true">●</span>
           <span>Deine Einträge werden automatisch auf diesem Gerät gespeichert. Verbinde ein Cloud-Konto, um sie zusätzlich geräteübergreifend zu synchronisieren; „Sicherung“ erstellt weiterhin eine herunterladbare Kopie.</span>
@@ -431,6 +470,7 @@
         <label class="widget-option"><input type="checkbox" name="habits"><span class="widget-option-text"><strong>Meine Routinen</strong><small>Tägliche Gewohnheiten und Serien</small></span></label>
         <label class="widget-option"><input type="checkbox" name="calendar"><span class="widget-option-text"><strong>Mein Kalender</strong><small>Termine planen und kommende Tage ansehen</small></span></label>
         <label class="widget-option"><input type="checkbox" name="watchlist"><span class="widget-option-text"><strong>Film- &amp; Serien-Watchlist</strong><small>Merkliste und zufällige Auswahl per Roulette</small></span></label>
+        <label class="widget-option"><input type="checkbox" name="expenses"><span class="widget-option-text"><strong>Ausgaben</strong><small>Monatssummen und Ausgaben nach Kategorie</small></span></label>
       </div>
       <div class="dialog-actions">
         <button class="quiet-button widget-reset" type="button" id="widgets-reset">Alle einblenden</button>
@@ -516,6 +556,38 @@
       </div>
     </form>
   </dialog>
+  <dialog id="expense-editor" aria-labelledby="expense-editor-title">
+    <div class="dialog-head">
+      <h2 id="expense-editor-title">Ausgabe hinzufügen</h2>
+      <button class="icon-button" type="button" data-action="close-expense-editor" aria-label="Dialog schließen">×</button>
+    </div>
+    <form class="dialog-form" id="expense-editor-form">
+      <div class="field">
+        <label for="expense-title">Wofür war die Ausgabe?</label>
+        <input id="expense-title" maxlength="100" autocomplete="off" required>
+      </div>
+      <div class="field">
+        <label for="expense-amount">Betrag (€)</label>
+        <input id="expense-amount" type="number" min="0.01" max="10000000" step="0.01" inputmode="decimal" placeholder="z. B. 12,50" required>
+      </div>
+      <div class="field">
+        <label for="expense-category">Kategorie</label>
+        <select id="expense-category" required></select>
+      </div>
+      <div class="field">
+        <label for="expense-date">Datum</label>
+        <input id="expense-date" type="date" required>
+      </div>
+      <div class="field">
+        <label for="expense-detail">Notiz (optional)</label>
+        <textarea id="expense-detail" maxlength="300" placeholder="Zusätzliche Details"></textarea>
+      </div>
+      <div class="dialog-actions">
+        <button class="quiet-button" type="button" data-action="close-expense-editor">Abbrechen</button>
+        <button class="primary-button" type="submit">Speichern</button>
+      </div>
+    </form>
+  </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="./cloud-config.js"></script>
@@ -527,7 +599,7 @@
       const widgetsStorageKey = "mein-bereich-widgets-v1";
       const cloudSessionStorageKey = "mein-bereich-cloud-session-v1";
       const cloudConfig = window.MEIN_BEREICH_CLOUD || {};
-      const widgetDefaults = { overview: true, timer: true, search: true, links: true, tasks: true, notes: true, habits: true, calendar: true, watchlist: true };
+      const widgetDefaults = { overview: true, timer: true, search: true, links: true, tasks: true, notes: true, habits: true, calendar: true, watchlist: true, expenses: true };
       const defaults = {
         profile: { name: "Dein Name", intro: "Ein Ort für deine Ideen, Links und den Alltag. Füge hinzu, was dir wichtig ist." },
         links: [],
@@ -535,10 +607,22 @@
         notes: [],
         habits: [],
         events: [],
-        watchlist: []
+        watchlist: [],
+        expenses: []
       };
       const labels = { profile: "Begrüßung", link: "Link", task: "Aufgabe", note: "Notiz", habit: "Routine", event: "Termin" };
       const watchStatuses = { planned: "Auf der Liste", watching: "Schaue ich", watched: "Gesehen" };
+      const expenseCategories = {
+        food: "Essen & Trinken",
+        housing: "Wohnen",
+        transport: "Transport",
+        leisure: "Freizeit",
+        health: "Gesundheit",
+        clothing: "Kleidung",
+        subscriptions: "Abos",
+        other: "Sonstiges"
+      };
+      const euroFormatter = new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" });
       const motivationalQuotes = [
         "Jeder kleine Schritt bringt dich deinem Ziel näher.",
         "Du musst nicht alles auf einmal schaffen – fang einfach an.",
@@ -557,6 +641,8 @@
       const form = document.getElementById("editor-form");
       const watchEditor = document.getElementById("watch-editor");
       const watchEditorForm = document.getElementById("watch-editor-form");
+      const expenseEditor = document.getElementById("expense-editor");
+      const expenseEditorForm = document.getElementById("expense-editor-form");
       const toast = document.getElementById("toast");
       const searchInput = document.getElementById("search-input");
       const widgetsDialog = document.getElementById("widgets-dialog");
@@ -576,6 +662,7 @@
       ];
       let editing = { kind: null, id: null };
       let editingWatchId = null;
+      let editingExpenseId = null;
       let toastTimer;
       let timerInterval;
       let cloudSession = loadCloudSession();
@@ -604,6 +691,7 @@
       const widgets = loadWidgets();
       let selectedDate = localDateString();
       let displayedMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+      let displayedExpenseMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
       function applyWidgets() {
         document.querySelectorAll("[data-widget]").forEach(element => {
           element.hidden = !widgets[element.dataset.widget];
@@ -753,6 +841,11 @@
             status: watchStatuses[item.status] ? item.status : "planned",
             service: typeof item.service === "string" ? item.service : "",
             detail: typeof item.detail === "string" ? item.detail : ""
+          })) : [],
+          expenses: Array.isArray(parsed.expenses) ? parsed.expenses.filter(validExpense).map(item => ({
+            ...item,
+            category: Object.hasOwn(expenseCategories, item.category) ? item.category : "other",
+            detail: typeof item.detail === "string" ? item.detail : ""
           })) : []
         };
       }
@@ -771,6 +864,13 @@
           (item.service === undefined || (typeof item.service === "string" && item.service.length <= 80)) &&
           (item.detail === undefined || typeof item.detail === "string");
       }
+      function validExpense(item) {
+        return validEntry(item) &&
+          Number.isSafeInteger(item.amountCents) && item.amountCents > 0 && item.amountCents <= 1_000_000_000 &&
+          Object.hasOwn(expenseCategories, item.category) &&
+          validDate(item.date) &&
+          (item.detail === undefined || (typeof item.detail === "string" && item.detail.length <= 300));
+      }
       function validDate(value) {
         if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
         const [year, month, day] = value.split("-").map(Number);
@@ -787,7 +887,7 @@
         return priority === "high" ? 0 : priority === "low" ? 2 : 1;
       }
       function collectionFor(kind) {
-        return kind === "event" ? state.events : kind === "watch" ? state.watchlist : state[`${kind}s`];
+        return kind === "event" ? state.events : kind === "watch" ? state.watchlist : kind === "expense" ? state.expenses : state[`${kind}s`];
       }
       function validLink(item) {
         if (!validEntry(item) || typeof item.url !== "string") return false;
@@ -1172,6 +1272,7 @@
         renderHabits();
         renderCalendar();
         renderWatchlist();
+        renderExpenses();
         applyWidgets();
       }
       function matchesSearch(...values) {
@@ -1447,6 +1548,92 @@
         watchEditor.showModal();
         document.getElementById("watch-title").focus();
       }
+      function expenseMonthKey(date) {
+        return date.slice(0, 7);
+      }
+      function changeExpenseMonth(offset) {
+        displayedExpenseMonth = new Date(displayedExpenseMonth.getFullYear(), displayedExpenseMonth.getMonth() + offset, 1);
+        renderExpenses();
+      }
+      function renderExpenses() {
+        const container = document.getElementById("expenses-list");
+        const breakdown = document.getElementById("expense-breakdown");
+        if (!container || !breakdown) return;
+        container.replaceChildren();
+        breakdown.replaceChildren();
+        const monthKey = localDateString(displayedExpenseMonth).slice(0, 7);
+        document.getElementById("expense-month").textContent = new Intl.DateTimeFormat("de-DE", { month: "long", year: "numeric" }).format(displayedExpenseMonth);
+        const monthly = state.expenses.filter(item => expenseMonthKey(item.date) === monthKey);
+        const totalCents = monthly.reduce((sum, item) => sum + item.amountCents, 0);
+        document.getElementById("expense-total").textContent = euroFormatter.format(totalCents / 100);
+        const categoryTotals = Object.keys(expenseCategories).map(category => ({
+          category,
+          total: monthly.filter(item => item.category === category).reduce((sum, item) => sum + item.amountCents, 0)
+        })).filter(item => item.total > 0);
+        const largestCategory = Math.max(1, ...categoryTotals.map(item => item.total));
+        categoryTotals.forEach(item => {
+          const row = el("div", "expense-category-row");
+          row.append(el("span", "", expenseCategories[item.category]));
+          const track = el("span", "expense-category-track");
+          const fill = el("span", "expense-category-fill");
+          fill.style.width = `${(item.total / largestCategory) * 100}%`;
+          track.append(fill);
+          row.append(track, el("strong", "expense-category-total", euroFormatter.format(item.total / 100)));
+          breakdown.append(row);
+        });
+        const filter = document.getElementById("expense-category-filter").value;
+        const entries = monthly
+          .filter(item => matchesSearch(item.title, item.detail, expenseCategories[item.category]) && (filter === "all" || item.category === filter))
+          .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+        if (!entries.length) {
+          if (searchInput.value.trim() || filter !== "all") emptyMessage(container, "Keine passenden Ausgaben.", "Passe deine Suche oder den Kategorienfilter an.");
+          else emptyMessage(container, "Noch keine Ausgaben in diesem Monat.", "Trage eine Ausgabe ein, um deine Monatsübersicht zu starten.");
+          return;
+        }
+        entries.forEach(item => {
+          const row = el("div", "entry expense-entry");
+          const text = el("span", "entry-text");
+          text.append(el("span", "entry-title", item.title));
+          const meta = el("span", "expense-meta");
+          meta.append(
+            el("span", "expense-pill", expenseCategories[item.category]),
+            el("span", "expense-pill", formatCalendarDate(item.date, { day: "numeric", month: "short" }))
+          );
+          if (item.detail) meta.append(el("span", "entry-subtitle", item.detail));
+          text.append(meta);
+          const amount = el("span", "expense-amount", euroFormatter.format(item.amountCents / 100));
+          const controls = el("span", "entry-controls");
+          controls.append(control("expense-edit", "expense", item.id, `${item.title} bearbeiten`, "✎"));
+          controls.append(control("expense-delete", "expense", item.id, `${item.title} löschen`, "×"));
+          row.append(text, amount, controls);
+          container.append(row);
+        });
+      }
+      function initializeExpenseCategories() {
+        const categoryInput = document.getElementById("expense-category");
+        const categoryFilter = document.getElementById("expense-category-filter");
+        Object.entries(expenseCategories).forEach(([value, label]) => {
+          const option = document.createElement("option");
+          option.value = value;
+          option.textContent = label;
+          categoryInput.append(option);
+          const filterOption = option.cloneNode(true);
+          categoryFilter.append(filterOption);
+        });
+      }
+      function openExpenseEditor(id) {
+        const existing = id ? state.expenses.find(item => item.id === id) : null;
+        if (id && !existing) return;
+        editingExpenseId = existing ? existing.id : null;
+        document.getElementById("expense-editor-title").textContent = existing ? "Ausgabe bearbeiten" : "Ausgabe hinzufügen";
+        document.getElementById("expense-title").value = existing?.title || "";
+        document.getElementById("expense-amount").value = existing ? (existing.amountCents / 100).toFixed(2) : "";
+        document.getElementById("expense-category").value = existing?.category || "other";
+        document.getElementById("expense-date").value = existing?.date || localDateString();
+        document.getElementById("expense-detail").value = existing?.detail || "";
+        expenseEditor.showModal();
+        document.getElementById("expense-title").focus();
+      }
       function openEditor(kind, id) {
         editing = { kind, id: id || null };
         const existing = id && kind !== "profile" ? collectionFor(kind).find(item => item.id === id) : null;
@@ -1586,6 +1773,39 @@
           state.watchlist = state.watchlist.filter(entry => entry.id !== item.id);
         }
       });
+      expenseEditorForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const title = document.getElementById("expense-title").value.trim();
+        const rawAmount = document.getElementById("expense-amount").value;
+        const amount = Number(rawAmount);
+        const amountCents = Math.round(amount * 100);
+        const category = document.getElementById("expense-category").value;
+        const date = document.getElementById("expense-date").value;
+        const detail = document.getElementById("expense-detail").value.trim();
+        if (!title) return notify("Bitte gib einen Namen für die Ausgabe ein.");
+        if (!Number.isFinite(amount) || amount <= 0 || amount > 10_000_000 || Math.abs(amount * 100 - amountCents) > 1e-7) {
+          return notify("Bitte gib einen gültigen Betrag mit höchstens zwei Nachkommastellen ein.");
+        }
+        if (!Object.hasOwn(expenseCategories, category)) return notify("Bitte wähle eine gültige Kategorie.");
+        if (!validDate(date)) return notify("Bitte wähle ein gültiges Datum für die Ausgabe.");
+        const values = { title, amountCents, category, date, detail };
+        const index = state.expenses.findIndex(item => item.id === editingExpenseId);
+        const previous = index === -1 ? null : state.expenses[index];
+        const item = { ...(previous || {}), ...(previous ? {} : { id: crypto.randomUUID() }), ...values };
+        if (index === -1) state.expenses.unshift(item);
+        else state.expenses[index] = item;
+        if (save()) {
+          displayedExpenseMonth = new Date(`${date}T12:00:00`);
+          displayedExpenseMonth.setDate(1);
+          expenseEditor.close();
+          renderExpenses();
+          notify(previous ? "Ausgabe aktualisiert." : "Ausgabe hinzugefügt.");
+        } else if (previous) {
+          state.expenses[index] = previous;
+        } else {
+          state.expenses = state.expenses.filter(entry => entry.id !== item.id);
+        }
+      });
       document.addEventListener("click", event => {
         const button = event.target.closest("[data-action]");
         if (!button) return;
@@ -1596,6 +1816,7 @@
         if (action === "close-dialog") dialog.close();
         if (action === "close-widgets") widgetsDialog.close();
         if (action === "close-watch-editor") watchEditor.close();
+        if (action === "close-expense-editor") expenseEditor.close();
         if (action === "watch-edit") openWatchEditor(id);
         if (action === "watch-delete") {
           const index = state.watchlist.findIndex(item => item.id === id);
@@ -1605,6 +1826,18 @@
           if (save()) notify("Titel aus der Watchlist gelöscht.");
           else {
             state.watchlist.splice(index, 0, removed);
+            render();
+          }
+        }
+        if (action === "expense-edit") openExpenseEditor(id);
+        if (action === "expense-delete") {
+          const index = state.expenses.findIndex(item => item.id === id);
+          if (index === -1) return;
+          if (!confirm(`„${state.expenses[index].title}“ wirklich löschen?`)) return;
+          const [removed] = state.expenses.splice(index, 1);
+          if (save()) notify("Ausgabe gelöscht.");
+          else {
+            state.expenses.splice(index, 0, removed);
             render();
           }
         }
@@ -1636,7 +1869,18 @@
         renderHabits();
         renderCalendar();
         renderWatchlist();
+        renderExpenses();
       });
+      document.getElementById("expense-add").addEventListener("click", () => openExpenseEditor());
+      document.getElementById("expense-prev").addEventListener("click", () => changeExpenseMonth(-1));
+      document.getElementById("expense-next").addEventListener("click", () => changeExpenseMonth(1));
+      document.getElementById("expense-current-month").addEventListener("click", () => {
+        const today = new Date();
+        displayedExpenseMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        renderExpenses();
+      });
+      document.getElementById("expense-category-filter").addEventListener("change", renderExpenses);
+      initializeExpenseCategories();
       document.getElementById("watch-add").addEventListener("click", () => openWatchEditor());
       document.getElementById("watch-filter").addEventListener("change", renderWatchlist);
       document.getElementById("watch-roulette").addEventListener("click", () => {
@@ -1821,13 +2065,13 @@
         if (!file) return;
         try {
           const imported = JSON.parse(await file.text());
-          if (!imported || typeof imported !== "object" || !imported.profile || !Array.isArray(imported.links) || !Array.isArray(imported.tasks) || !Array.isArray(imported.notes) || (imported.habits !== undefined && !Array.isArray(imported.habits)) || (imported.events !== undefined && !Array.isArray(imported.events)) || (imported.watchlist !== undefined && !Array.isArray(imported.watchlist))) {
+          if (!imported || typeof imported !== "object" || !imported.profile || !Array.isArray(imported.links) || !Array.isArray(imported.tasks) || !Array.isArray(imported.notes) || (imported.habits !== undefined && !Array.isArray(imported.habits)) || (imported.events !== undefined && !Array.isArray(imported.events)) || (imported.watchlist !== undefined && !Array.isArray(imported.watchlist)) || (imported.expenses !== undefined && !Array.isArray(imported.expenses))) {
             throw new Error("Ungültiges Sicherungsformat");
           }
-          if (!imported.links.every(validLink) || !imported.tasks.every(validEntry) || !imported.notes.every(validEntry) || (imported.habits || []).some(item => !validEntry(item) || (item.completedDates !== undefined && (!Array.isArray(item.completedDates) || !item.completedDates.every(validDate)))) || (imported.events || []).some(item => !validEvent(item)) || (imported.watchlist || []).some(item => !validWatchItem(item))) {
+          if (!imported.links.every(validLink) || !imported.tasks.every(validEntry) || !imported.notes.every(validEntry) || (imported.habits || []).some(item => !validEntry(item) || (item.completedDates !== undefined && (!Array.isArray(item.completedDates) || !item.completedDates.every(validDate)))) || (imported.events || []).some(item => !validEvent(item)) || (imported.watchlist || []).some(item => !validWatchItem(item)) || (imported.expenses || []).some(item => !validExpense(item))) {
             throw new Error("Einträge in der Sicherung sind ungültig");
           }
-          if (!confirm(`Diese Sicherung ersetzt deine aktuellen Einträge (${state.links.length} Links, ${state.tasks.length} Aufgaben, ${state.notes.length} Notizen, ${state.habits.length} Routinen, ${state.events.length} Termine und ${state.watchlist.length} Watchlist-Titel). Fortfahren?`)) return;
+          if (!confirm(`Diese Sicherung ersetzt deine aktuellen Einträge (${state.links.length} Links, ${state.tasks.length} Aufgaben, ${state.notes.length} Notizen, ${state.habits.length} Routinen, ${state.events.length} Termine, ${state.watchlist.length} Watchlist-Titel und ${state.expenses.length} Ausgaben). Fortfahren?`)) return;
           const previous = {
             profile: state.profile,
             links: state.links,
@@ -1835,7 +2079,8 @@
             notes: state.notes,
             habits: state.habits,
             events: state.events,
-            watchlist: state.watchlist
+            watchlist: state.watchlist,
+            expenses: state.expenses
           };
           state.profile = {
             name: String(imported.profile.name || defaults.profile.name),
@@ -1861,6 +2106,11 @@
             service: typeof item.service === "string" ? item.service : "",
             detail: typeof item.detail === "string" ? item.detail : ""
           }));
+          state.expenses = (imported.expenses || []).filter(validExpense).map(item => ({
+            ...item,
+            category: Object.hasOwn(expenseCategories, item.category) ? item.category : "other",
+            detail: typeof item.detail === "string" ? item.detail : ""
+          }));
           if (save()) notify("Sicherung erfolgreich geladen.");
           else {
             state.profile = previous.profile;
@@ -1870,6 +2120,7 @@
             state.habits = previous.habits;
             state.events = previous.events;
             state.watchlist = previous.watchlist;
+            state.expenses = previous.expenses;
           }
         } catch (error) {
           notify("Diese Datei konnte nicht als Sicherung geladen werden. Bitte wähle eine gültige JSON-Sicherung.");

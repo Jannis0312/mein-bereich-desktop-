@@ -1,6 +1,6 @@
 {
   "name": "mein-bereich",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "private": true,
   "description": "Persönliches Dashboard als Windows-Desktop-App",
   "main": "desktop.cjs",
