@@ -1,6 +1,6 @@
 {
   "name": "mein-bereich",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "private": true,
   "description": "Persönliches Dashboard als Windows-Desktop-App",
   "main": "desktop.cjs",
@@ -21,7 +21,10 @@
     "files": [
       "index.html",
       "desktop.cjs",
-      "cloud-config.js"
+      "cloud-config.js",
+      "manifest.webmanifest",
+      "service-worker.js",
+      "icons/**"
     ],
     "win": {
       "target": "nsis"

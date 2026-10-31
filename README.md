@@ -14,6 +14,15 @@
 Das Dashboard wird in einem eigenen Fenster geöffnet. Änderungen an Aufgaben, Links, Notizen, Routinen, Terminen, deiner Film- und Serien-Watchlist, Spielen, Ausgaben und deinem Profil speichert die App automatisch auf diesem Gerät.
 Der Desktop-App-Speicher ist getrennt vom Browser. Über „Sicherung“ kannst du Browser-Daten exportieren und anschließend in der Desktop-App importieren.
 
+## Auf dem Handy installieren
+
+Die Webseite lässt sich als Progressive Web App (PWA) installieren und öffnet sich dann wie eine normale App. Öffne die GitHub-Pages-Webseite auf dem Handy und tippe auf **„App fürs Handy installieren“**. Falls dein Browser keinen direkten Installationsdialog anbietet:
+
+- **Android:** Öffne das Browsermenü und wähle **„App installieren“** oder **„Zum Startbildschirm hinzufügen“**.
+- **iPhone/iPad:** Öffne die Seite in Safari, tippe auf **Teilen** und anschließend auf **„Zum Home-Bildschirm“**.
+
+Die App-Oberfläche wird für die Offline-Nutzung zwischengespeichert. Für Cloud-Synchronisierung und Wetterdaten brauchst du eine Internetverbindung. Melde dich auf dem Handy mit demselben Cloud-Konto an, damit deine Dashboard-Daten geräteübergreifend synchronisiert werden.
+
 ## Cloud-Synchronisierung einrichten
 
 Die Cloud-Synchronisierung ist optional. Ohne Cloud-Einrichtung bleiben deine Daten lokal und werden weiterhin automatisch gespeichert.

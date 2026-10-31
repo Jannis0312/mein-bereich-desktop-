@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f6f5f0">
   <meta name="description" content="Dein persönlicher, anpassbarer Bereich für Aufgaben, Notizen, Termine und deine Film- und Serien-Watchlist.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Mein Bereich">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icons/icon-180.png">
   <title>Mein Bereich</title>
   <style>
     :root {
@@ -236,6 +241,8 @@
     .weather-day-temperatures { font-size: 9px; line-height: 1.5; }
     .weather-attribution { display: inline-block; margin-top: 10px; color: var(--muted); font-size: 9px; }
     .weather-attribution a { color: inherit; }
+    .install-action { margin-top: 18px; }
+    .install-dialog-copy { color: var(--muted); font-size: 13px; line-height: 1.65; }
     :root[data-theme="dark"] .weather-search input { border-color: var(--line); background: #1d211d; color: var(--ink); }
     :root[data-theme="dark"] .weather-current { border: 1px solid #354434; }
     .empty { padding: 20px 8px 18px; color: var(--muted); font-size: 12px; line-height: 1.6; text-align: center; }
@@ -307,6 +314,7 @@
       <h1 id="welcome"></h1>
       <p class="intro-copy" id="intro-copy"></p>
       <p class="intro-copy" id="motivation" aria-live="polite"></p>
+      <button class="quiet-button install-action" type="button" id="install-app" hidden>＋ App fürs Handy installieren</button>
     </section>
 
     <section class="overview" data-widget="overview" aria-label="Tagesübersicht">
@@ -685,6 +693,18 @@
         <button class="primary-button" type="submit">Speichern</button>
       </div>
     </form>
+  </dialog>
+  <dialog id="install-dialog" aria-labelledby="install-dialog-title">
+    <div class="dialog-head">
+      <h2 id="install-dialog-title">Mein Bereich installieren</h2>
+      <button class="icon-button" type="button" data-action="close-install-dialog" aria-label="Dialog schließen">×</button>
+    </div>
+    <div class="dialog-form">
+      <p class="install-dialog-copy" id="install-instructions"></p>
+      <div class="dialog-actions">
+        <button class="primary-button" type="button" data-action="close-install-dialog">Verstanden</button>
+      </div>
+    </div>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
@@ -1958,6 +1978,51 @@
           loadWeather(savedCity);
         }
       }
+      function setupProgressiveWebApp() {
+        const installButton = document.getElementById("install-app");
+        const installDialog = document.getElementById("install-dialog");
+        let installPrompt = null;
+        const isInstalled = () => window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+        if (!window.isSecureContext || !("serviceWorker" in navigator)) return;
+        installButton.hidden = isInstalled();
+        window.addEventListener("beforeinstallprompt", event => {
+          event.preventDefault();
+          installPrompt = event;
+          installButton.hidden = isInstalled();
+        });
+        window.addEventListener("appinstalled", () => {
+          installPrompt = null;
+          installButton.hidden = true;
+          notify("Mein Bereich wurde auf dem Gerät installiert.");
+        });
+        installButton.addEventListener("click", async () => {
+          if (installPrompt) {
+            const prompt = installPrompt;
+            installPrompt = null;
+            try {
+              await prompt.prompt();
+              const choice = await prompt.userChoice;
+              if (choice.outcome === "accepted") installButton.hidden = true;
+            } catch (error) {
+              console.error("Die App-Installation konnte nicht gestartet werden:", error);
+              notify("Die Installation konnte nicht gestartet werden. Du kannst sie über das Browsermenü versuchen.");
+            }
+            return;
+          }
+          const instructions = document.getElementById("install-instructions");
+          const userAgent = navigator.userAgent.toLocaleLowerCase();
+          const isAppleMobile = /iphone|ipad|ipod/.test(userAgent) ||
+            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+          instructions.textContent = isAppleMobile
+            ? "Öffne diese Webseite in Safari, tippe auf „Teilen“ und wähle „Zum Home-Bildschirm“. Tippe anschließend auf „Hinzufügen“."
+            : "Öffne das Browsermenü (⋮) und wähle „App installieren“ oder „Zum Startbildschirm hinzufügen“. Die genaue Bezeichnung hängt von deinem Browser ab.";
+          installDialog.showModal();
+        });
+        navigator.serviceWorker.register("./service-worker.js", { scope: "./" }).catch(error => {
+          console.error("Offline-Unterstützung konnte nicht aktiviert werden:", error);
+          notify("Die App konnte nicht für die Offline-Nutzung vorbereitet werden. Prüfe deine Internetverbindung.");
+        });
+      }
       function openEditor(kind, id) {
         editing = { kind, id: id || null };
         const existing = id && kind !== "profile" ? collectionFor(kind).find(item => item.id === id) : null;
@@ -2162,6 +2227,7 @@
         if (action === "edit-profile") openEditor("profile");
         if (action === "close-dialog") dialog.close();
         if (action === "close-widgets") widgetsDialog.close();
+        if (action === "close-install-dialog") document.getElementById("install-dialog").close();
         if (action === "close-watch-editor") watchEditor.close();
         if (action === "close-expense-editor") expenseEditor.close();
         if (action === "close-game-editor") gameEditor.close();
@@ -2544,6 +2610,7 @@
       loadTheme();
       render();
       initializeWeather();
+      setupProgressiveWebApp();
       updateTimer();
       if (timer.justCompleted) {
         saveTimer();
